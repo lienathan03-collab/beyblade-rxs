@@ -1173,7 +1173,27 @@ async function selectTournament(id, url, el) {
     const data = await fetchChallonge(`?action=participants&tournament_id=${encodeURIComponent(url)}`);
     currentParticipants = data.map(p=>p.participant).sort((a,b)=>(a.final_rank||999)-(b.final_rank||999));
     renderTournamentDetail();
-    document.getElementById('import-section').style.display = 'block';
+    const alreadyImported = importedTournamentIds.includes(String(id));
+    const importSection = document.getElementById('import-section');
+    importSection.style.display = 'block';
+    const btnImport = document.getElementById('btn-import');
+    const labelInput = document.getElementById('event-label-input');
+    if (alreadyImported) {
+      btnImport.disabled = true;
+      btnImport.style.cssText = 'background:#0a1f0f;border:1px solid var(--green);color:var(--green);cursor:default;opacity:1;font-family:\'Rajdhani\',sans-serif;font-weight:700;letter-spacing:2px;padding:8px 18px;border-radius:6px;font-size:12px';
+      btnImport.textContent = '\u2705 RECORDED';
+      labelInput.disabled = true;
+      labelInput.style.opacity = '0.4';
+      document.getElementById('import-preview-wrap').innerHTML = '<div class="api-note" style="color:var(--green)">\u2705 This tournament has already been recorded to the leaderboard.</div>';
+    } else {
+      btnImport.disabled = false;
+      btnImport.style.cssText = '';
+      btnImport.className = 'btn primary';
+      btnImport.textContent = '\u2b07 Import to Leaderboard';
+      labelInput.disabled = false;
+      labelInput.style.opacity = '1';
+      document.getElementById('import-preview-wrap').innerHTML = '';
+    }
   } catch(e) {
     document.getElementById('tournament-detail-wrap').innerHTML = `<div class="empty-state">Could not load: ${e.message}</div>`;
   }
@@ -1243,8 +1263,17 @@ function confirmImport(labelEnc, resultsEnc, tournamentId) {
     localStorage.setItem('rxs_imported_ids', JSON.stringify(importedTournamentIds));
   }
   renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
-  document.getElementById('import-preview-wrap').innerHTML = `<div class="api-note">✅ <strong>${label}</strong> imported! Leaderboard and Weekly updated.</div>`;
-  showToast(`${label} imported!`, 'success');
+  document.getElementById('import-preview-wrap').innerHTML = `<div class="api-note" style="color:var(--green)">✅ <strong>${label}</strong> recorded! A new column has been added to Weekly Scores.</div>`;
+  showToast(`${label} recorded!`, 'success');
+  // Update the import button to RECORDED state
+  const btnImport = document.getElementById('btn-import');
+  const labelInput = document.getElementById('event-label-input');
+  if (btnImport) {
+    btnImport.disabled = true;
+    btnImport.style.cssText = 'background:#0a1f0f;border:1px solid var(--green);color:var(--green);cursor:default;opacity:1;font-family:\'Rajdhani\',sans-serif;font-weight:700;letter-spacing:2px;padding:8px 18px;border-radius:6px;font-size:12px';
+    btnImport.textContent = '\u2705 RECORDED';
+  }
+  if (labelInput) { labelInput.disabled = true; labelInput.style.opacity = '0.4'; }
 }
 
 // ═══════════════════════════════════════════════════════
