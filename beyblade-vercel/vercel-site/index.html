@@ -22,9 +22,12 @@
     height: 60px; position: sticky; top: 0; z-index: 100;
   }
   .logo { display: flex; align-items: center; gap: 12px; }
-  .logo-icon { width: 34px; height: 34px; }
-  .logo-text { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
+  .logo-brand { background: #000; border: 1px solid #222; border-radius: 6px; padding: 6px 14px; display: flex; align-items: center; }
+  .logo-text-main { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 4px; color: #fff; text-transform: uppercase; }
   .logo-x { color: var(--gold); font-style: italic; }
+  .fb-link { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: #1877f2; transition: opacity .2s; flex-shrink: 0; }
+  .fb-link:hover { opacity: 0.75; }
+  .fb-icon { width: 26px; height: 26px; }
   nav { display: flex; gap: 4px; align-items: center; }
   nav button {
     background: transparent; border: none; color: var(--muted);
@@ -52,13 +55,25 @@
 
   /* HERO */
   .hero {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 40px 32px; text-align: center; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #0a0a14 0%, #0d0d1a 40%, #0a0f1a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 52px 32px; text-align: center; position: relative; overflow: hidden;
   }
-  .hero::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 500px; height: 500px; border-radius: 50%; border: 1px solid #1a1a1a; pointer-events: none; }
-  .hero::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 320px; height: 320px; border-radius: 50%; border: 1px solid #1d1d1d; pointer-events: none; }
-  .hero-title { font-family: 'Rajdhani', sans-serif; font-size: 42px; font-weight: 700; letter-spacing: 8px; text-transform: uppercase; color: var(--accent); position: relative; margin-bottom: 8px; }
-  .hero-sub { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); position: relative; margin-bottom: 28px; }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 20% 50%, rgba(180,60,255,0.13) 0%, transparent 60%),
+                radial-gradient(ellipse 70% 60% at 80% 50%, rgba(0,200,255,0.11) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 80% at 50% 0%, rgba(255,200,0,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(255,255,255,0.012) 60px, rgba(255,255,255,0.012) 61px);
+    pointer-events: none;
+  }
+  .hero-title { font-family: 'Rajdhani', sans-serif; font-size: 52px; font-weight: 900; letter-spacing: 10px; text-transform: uppercase; color: #fff; position: relative; margin-bottom: 10px; text-shadow: 0 0 40px rgba(255,255,255,0.15); }
+  .hero-title .hero-x { color: var(--gold); font-style: italic; text-shadow: 0 0 20px rgba(212,160,23,0.6); }
+  .hero-sub { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.45); position: relative; margin-bottom: 32px; }
   .hero-stats { display: flex; justify-content: center; gap: 40px; position: relative; }
   .hero-stat { text-align: center; }
   .hero-stat .n { font-family: 'Share Tech Mono', monospace; font-size: 28px; color: var(--accent); display: block; }
@@ -90,27 +105,27 @@
 
   /* PHOTO AVATAR */
   .podium-avatar {
-    width: 72px; height: 72px; border-radius: 50%;
-    margin: 0 auto 10px; position: relative;
+    width: 100%; height: 160px; border-radius: 10px;
+    margin: 0 auto 12px; position: relative;
     overflow: hidden; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
   }
   .podium-avatar img {
-    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+    width: 100%; height: 100%; object-fit: cover; border-radius: 10px;
     display: block;
   }
   .podium-avatar .silhouette {
-    width: 100%; height: 100%; border-radius: 50%;
+    width: 100%; height: 100%; border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     font-size: 30px; position: relative;
   }
-  .pa-gold .silhouette { background: radial-gradient(circle at 40% 35%, #2a1e00, #1a1200); border: 2px solid var(--gold); }
-  .pa-silver .silhouette { background: radial-gradient(circle at 40% 35%, #202020, #141414); border: 2px solid var(--silver); }
-  .pa-bronze .silhouette { background: radial-gradient(circle at 40% 35%, #2a1508, #1a0e08); border: 2px solid var(--bronze); }
+  .pa-gold .silhouette { background: radial-gradient(circle at 40% 35%, #2a1e00, #1a1200); border: 2px solid var(--gold); border-radius: 10px; }
+  .pa-silver .silhouette { background: radial-gradient(circle at 40% 35%, #202020, #141414); border: 2px solid var(--silver); border-radius: 10px; }
+  .pa-bronze .silhouette { background: radial-gradient(circle at 40% 35%, #2a1508, #1a0e08); border: 2px solid var(--bronze); border-radius: 10px; }
 
   /* Admin edit overlay on podium photo */
   .podium-avatar .edit-overlay {
-    position: absolute; inset: 0; border-radius: 50%;
+    position: absolute; inset: 0; border-radius: 10px;
     background: rgba(0,0,0,0.6); display: none;
     align-items: center; justify-content: center;
     font-size: 18px; cursor: pointer; transition: opacity .2s;
@@ -395,17 +410,14 @@
 
 <header>
   <div class="logo">
-    <svg class="logo-icon" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="17" cy="17" r="15.5" stroke="#444" stroke-width="1"/>
-      <circle cx="17" cy="17" r="10" stroke="#555" stroke-width="0.8"/>
-      <circle cx="17" cy="17" r="5" stroke="#666" stroke-width="0.8"/>
-      <circle cx="17" cy="17" r="2" fill="#d4a017"/>
-      <line x1="17" y1="1.5" x2="17" y2="32.5" stroke="#2a2a2a" stroke-width="0.5"/>
-      <line x1="1.5" y1="17" x2="32.5" y2="17" stroke="#2a2a2a" stroke-width="0.5"/>
-      <line x1="6" y1="6" x2="28" y2="28" stroke="#222" stroke-width="0.5"/>
-      <line x1="28" y1="6" x2="6" y2="28" stroke="#222" stroke-width="0.5"/>
-    </svg>
-    <span class="logo-text">BEYBLADE R<span class="logo-x">X</span>S</span>
+    <a href="https://www.facebook.com/groups/beybladephilippines" target="_blank" rel="noopener" class="fb-link" title="Join us on Facebook">
+      <svg class="fb-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.514c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+      </svg>
+    </a>
+    <div class="logo-brand">
+      <span class="logo-text-main">BEYBLADE R<span class="logo-x">X</span>S</span>
+    </div>
   </div>
   <nav>
     <button class="active" onclick="showTab('leaderboard', this)">Leaderboard</button>
@@ -419,7 +431,7 @@
 </header>
 
 <div class="hero">
-  <div class="hero-title">Beyblade R<span style="color:var(--gold);font-style:italic">X</span>S</div>
+  <div class="hero-title">BEYBLADE R<span class="hero-x">X</span>S</div>
   <div class="hero-sub">Roxas City Community · Season Rankings</div>
   <div class="hero-stats">
     <div class="hero-stat"><span class="n" id="stat-bladers">60</span><span class="l">Bladers</span></div>
@@ -861,7 +873,7 @@ function applyPodiumPhotos() {
     const el = document.getElementById(avatarId);
     if (!el) return;
     if (url) {
-      el.innerHTML = `<img src="${url}" alt="Player ${n}" onerror="this.parentElement.innerHTML='<div class=\\'silhouette\\'>🧍</div><div class=\\'edit-overlay\\'>📷</div>'" /><div class="edit-overlay">📷</div>`;
+      el.innerHTML = `<img src="${url}" alt="Player ${n}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block" onerror="this.parentElement.innerHTML='<div class=\\'silhouette\\'>🧍</div><div class=\\'edit-overlay\\'>📷</div>'" /><div class="edit-overlay">📷</div>`;
     } else {
       el.innerHTML = `<div class="silhouette">🧍</div><div class="edit-overlay">📷</div>`;
     }
