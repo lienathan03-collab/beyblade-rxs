@@ -343,6 +343,42 @@
     .challonge-form { grid-template-columns: 1fr; }
     .challonge-cols { grid-template-columns: 1fr; }
   }
+
+  /* ── PUBLIC CHALLONGE HERO ── */
+  .challonge-live-hero {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; margin-bottom: 20px; position: relative; overflow: hidden;
+  }
+  .challonge-live-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .challonge-live-hero.state-underway::before { background: linear-gradient(90deg, var(--red), #ff6b35); }
+  .challonge-live-hero.state-complete::before { background: linear-gradient(90deg, var(--green), #5aaa7a); }
+  .challonge-live-hero.state-pending::before { background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+  .clh-top { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+  .clh-icon { font-size: 32px; flex-shrink: 0; margin-top: 2px; }
+  .clh-info { flex: 1; }
+  .clh-name { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .clh-meta { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 6px 14px; border-radius: 20px; }
+  .status-pill.live { color: var(--red); border: 1px solid var(--red); background: #1f0808; animation: pulse 2s ease-in-out infinite; }
+  .status-pill.complete { color: var(--green); border: 1px solid var(--green); background: #0a1f0f; }
+  .status-pill.pending { color: var(--gold); border: 1px solid var(--gold); background: #1a1200; }
+  .auto-import-banner { background: #0a1f0f; border: 1px solid var(--green); border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #5aaa7a; margin-bottom: 16px; }
+  .auto-import-banner .aib-icon { font-size: 20px; flex-shrink: 0; }
+  .auto-import-banner strong { color: var(--green); }
+  .standings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-top: 8px; }
+  .sg-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .sg-rank { font-family: 'Share Tech Mono', monospace; font-size: 13px; color: var(--muted); width: 28px; flex-shrink: 0; text-align: center; }
+  .sg-rank.r1 { color: var(--gold2); font-size: 16px; }
+  .sg-rank.r2 { color: var(--silver); font-size: 16px; }
+  .sg-rank.r3 { color: var(--bronze); font-size: 16px; }
+  .sg-name { flex: 1; font-size: 13px; font-weight: 600; }
+  .sg-pts { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--gold); }
+  .sg-new { font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 1px 5px; border-radius: 3px; background: #0a1f0f; color: var(--green); border: 1px solid var(--green); margin-left: 4px; vertical-align: middle; }
+  .tournament-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .t-tab { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; cursor: pointer; transition: all .15s; font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .t-tab:hover { border-color: var(--gold); color: var(--gold); }
+  .t-tab.active { border-color: var(--gold); color: var(--gold); background: #1a1200; }
+  .t-tab .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 </style>
 </head>
 <body>
@@ -495,30 +531,23 @@
 <!-- ══════════════ CHALLONGE TAB ══════════════ -->
 <div id="tab-challonge" class="section">
 
-  <!-- PUBLIC VIEW (non-admin sees this) -->
+  <!-- PUBLIC VIEW -->
   <div id="challonge-public">
-    <div class="section-header">
-      <span class="section-title">⚡ Live Tournaments — lienathan</span>
-      <div class="section-line"></div>
-      <button class="btn" id="pub-refresh-btn" onclick="loadPublicTournaments()" style="font-size:11px;padding:5px 12px;">🔄 Refresh</button>
-    </div>
-
-    <!-- Tournament list (shown first) -->
-    <div id="public-tournament-list">
-      <div class="loader"><div class="spinner"></div>Loading tournaments from Challonge…</div>
-    </div>
-
-    <!-- Bracket view (shown when a tournament is clicked) -->
-    <div id="public-bracket-view" style="display:none">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <button class="btn" onclick="backToTournamentList()" style="font-size:11px;padding:5px 12px;">← Back</button>
-        <div id="pub-bracket-title" style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent)"></div>
-        <div id="pub-bracket-status" class="ltc-status"></div>
+    <div id="pub-loading" class="loader"><div class="spinner"></div>Loading latest tournament…</div>
+    <div id="pub-hero" style="display:none"></div>
+    <div id="pub-others" style="display:none">
+      <div class="section-header" style="margin-top:24px">
+        <span class="section-title">All Tournaments</span>
+        <div class="section-line"></div>
+        <button class="btn" onclick="loadPublicTournaments()" style="font-size:11px;padding:5px 12px;">🔄 Refresh</button>
       </div>
-      <!-- Challonge embed iframe -->
-      <div id="pub-bracket-embed" style="margin-bottom:20px"></div>
-      <!-- Participants list -->
-      <div id="pub-participants-wrap"></div>
+      <div id="pub-tabs" class="tournament-tabs"></div>
+    </div>
+    <div id="pub-error" style="display:none;padding:40px;text-align:center">
+      <div style="font-size:32px;margin-bottom:12px">⚠️</div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:16px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Could not load tournaments</div>
+      <div id="pub-error-msg" style="font-size:13px;color:var(--muted2);margin-bottom:20px"></div>
+      <button class="btn" onclick="loadPublicTournaments()">🔄 Try Again</button>
     </div>
   </div>
 
@@ -529,7 +558,7 @@
         <div class="challonge-logo">🏆</div>
         <div>
           <div class="challonge-title">Challonge Integration</div>
-          <div class="challonge-subtitle">Auto-connected via Netlify · Account: lienathan</div>
+          <div class="challonge-subtitle">Auto-connected via Vercel · Account: lienathan</div>
         </div>
         <div class="challonge-status connected" id="challonge-status">● Connected</div>
       </div>
@@ -541,7 +570,7 @@
       <div class="challonge-actions">
         <button class="btn primary" id="btn-load-tournaments" onclick="loadTournaments()">📋 Load My Tournaments</button>
         <button class="btn" id="btn-refresh" onclick="loadTournaments()">🔄 Refresh</button>
-        <button class="btn" onclick="loadDemoMode()" style="border-color:#3a8fd4;color:#3a8fd4">🎮 Demo Mode</button>
+        
       </div>
     </div>
 
@@ -891,23 +920,143 @@ function clearPhotos() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  CHALLONGE — Auto via Netlify Function proxy
+//  CHALLONGE
 // ═══════════════════════════════════════════════════════
-const NETLIFY_FN = '/api/challonge';
+const API = '/api/challonge';
 
-// ── Safe fetch wrapper — reads body as text first so HTML error pages
-//    produce a readable message instead of "Unexpected token '<'" ──────────
+// Track imported tournament IDs
+let importedTournamentIds = JSON.parse(localStorage.getItem('rxs_imported_ids') || '[]');
+
 async function fetchChallonge(query) {
-  const resp = await fetch(`${NETLIFY_FN}${query}`);
+  const resp = await fetch(`${API}${query}`);
   const text = await resp.text();
   let data;
-  try {
-    data = JSON.parse(text);
-  } catch (_) {
-    throw new Error(`HTTP ${resp.status} — Function returned non-JSON: ${text.slice(0, 120)}`);
-  }
+  try { data = JSON.parse(text); } catch(_) { throw new Error(`HTTP ${resp.status} — ${text.slice(0,120)}`); }
   if (data && data.error) throw new Error(data.error);
   return data;
+}
+
+// ── Fuzzy name matching ──
+function findPlayerByName(challongeName) {
+  const cn = challongeName.toLowerCase().trim();
+  let found = players.find(p => p.name.toLowerCase() === cn);
+  if (found) return found;
+  found = players.find(p => p.name.toLowerCase().includes(cn));
+  if (found) return found;
+  found = players.find(p => cn.includes(p.name.toLowerCase()));
+  if (found) return found;
+  const firstToken = cn.split(/[\s\/]+/)[0];
+  if (firstToken.length > 2) {
+    found = players.find(p => p.name.toLowerCase().startsWith(firstToken));
+    if (found) return found;
+  }
+  const cnTokens = cn.split(/[\s\.\-\/]+/).filter(t => t.length > 2);
+  found = players.find(p => {
+    const pTokens = p.name.toLowerCase().split(/[\s\.\-\/]+/);
+    return cnTokens.some(ct => pTokens.some(pt => pt === ct || pt.startsWith(ct) || ct.startsWith(pt)));
+  });
+  return found || null;
+}
+
+// ── PUBLIC VIEW: auto-load best tournament ──
+async function loadPublicTournaments() {
+  document.getElementById('pub-loading').style.display = 'flex';
+  document.getElementById('pub-hero').style.display = 'none';
+  document.getElementById('pub-others').style.display = 'none';
+  document.getElementById('pub-error').style.display = 'none';
+  try {
+    const data = await fetchChallonge('?action=list');
+    if (!data || !data.length) { showPubError('No tournaments found.'); return; }
+    const stateOrder = {underway:0, pending:1, complete:2};
+    const sorted = [...data].sort((a,b) => {
+      const sa = stateOrder[a.tournament.state]??2, sb = stateOrder[b.tournament.state]??2;
+      if (sa !== sb) return sa - sb;
+      return new Date(b.tournament.created_at) - new Date(a.tournament.created_at);
+    });
+    await renderFeaturedTournament(sorted[0].tournament);
+    renderPublicTabs(sorted);
+    document.getElementById('pub-loading').style.display = 'none';
+    document.getElementById('pub-others').style.display = 'block';
+  } catch(e) { showPubError(e.message); }
+}
+
+function showPubError(msg) {
+  document.getElementById('pub-loading').style.display = 'none';
+  document.getElementById('pub-error').style.display = 'block';
+  document.getElementById('pub-error-msg').textContent = msg;
+}
+
+async function renderFeaturedTournament(tour) {
+  const state = tour.state;
+  const stateLabel = {underway:'🔴 LIVE', complete:'✅ Complete', pending:'⏳ Upcoming'}[state] || state;
+  const stateClass = {underway:'live', complete:'complete', pending:'pending'}[state] || 'pending';
+  const date = tour.started_at ? new Date(tour.started_at).toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'}) : 'Not started yet';
+  const isImported = importedTournamentIds.includes(String(tour.id));
+  const heroEl = document.getElementById('pub-hero');
+  heroEl.innerHTML = '<div class="loader" id="hero-loading"><div class="spinner"></div>Loading bracket…</div>';
+  heroEl.style.display = 'block';
+  let participants = [];
+  try {
+    const pData = await fetchChallonge(`?action=participants&tournament_id=${encodeURIComponent(tour.url)}`);
+    participants = pData.map(p=>p.participant).sort((a,b)=>(a.final_rank||999)-(b.final_rank||999));
+  } catch(e) {}
+  const standingsHtml = participants.length ? `
+    <div style="margin-top:16px">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">
+        Final Standings — ${participants.length} Participants
+      </div>
+      <div class="standings-grid">
+        ${participants.map((p,i) => {
+          const rank = p.final_rank||(i+1);
+          const pts = getPointsForRank(rank);
+          const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`#${rank}`;
+          const rClass = rank===1?'r1':rank===2?'r2':rank===3?'r3':'';
+          const matchedPlayer = findPlayerByName(p.display_name||p.name||'');
+          const newTag = !matchedPlayer ? '<span class="sg-new">NEW</span>' : '';
+          return `<div class="sg-card"><div class="sg-rank ${rClass}">${medal}</div><div class="sg-name">${p.display_name||p.name}${newTag}</div><div class="sg-pts">+${pts} pts</div></div>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+  const autoBanner = (state === 'complete' && !isImported) ? `
+    <div class="auto-import-banner"><div class="aib-icon">💡</div><div>This tournament is <strong>complete</strong> but not yet added to the leaderboard. <strong>Admin can import</strong> from the Admin panel.</div></div>` :
+    (isImported ? `<div class="auto-import-banner" style="background:#0a0f1a;border-color:var(--blue)"><div class="aib-icon">✅</div><div style="color:#5a9fd4">Results from this tournament have been <strong style="color:var(--blue)">added to the leaderboard</strong>.</div></div>` : '');
+  heroEl.innerHTML = `
+    <div class="challonge-live-hero state-${stateClass}">
+      <div class="clh-top">
+        <div class="clh-icon">🏆</div>
+        <div class="clh-info">
+          <div class="clh-name">${tour.name}</div>
+          <div class="clh-meta">${(tour.tournament_type||'TOURNAMENT').toUpperCase()} · ${tour.participants_count} players · ${date}</div>
+        </div>
+        <div><div class="status-pill ${stateClass}">${stateLabel}</div></div>
+      </div>
+      ${autoBanner}
+      <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px">
+        <iframe src="https://challonge.com/lienathan/${tour.url}/module?theme=1&multiplier=1.0&show_final_results=1&show_standings=1"
+          width="100%" height="500" frameborder="0" scrolling="auto" allowtransparency="true"
+          style="background:transparent;display:block"></iframe>
+      </div>
+      ${standingsHtml}
+    </div>`;
+}
+
+function renderPublicTabs(sorted) {
+  const emoji = {underway:'🔴', complete:'✅', pending:'⏳'};
+  document.getElementById('pub-tabs').innerHTML = sorted.map((t,i) => {
+    const tour = t.tournament;
+    return `<div class="t-tab${i===0?' active':''}" onclick="switchPublicTournament('${tour.id}','${tour.url}','${tour.name.replace(/'/g,"'")}','${tour.state}',this)">
+      <span class="dot"></span>${emoji[tour.state]||''} ${tour.name}
+    </div>`;
+  }).join('');
+}
+
+async function switchPublicTournament(id, url, name, state, el) {
+  document.querySelectorAll('.t-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const heroEl = document.getElementById('pub-hero');
+  heroEl.innerHTML = '<div class="loader"><div class="spinner"></div>Loading…</div>';
+  heroEl.style.display = 'block';
+  await renderFeaturedTournament({id, url, name, state, tournament_type:'', participants_count:'?', started_at:null});
 }
 
 // ── Admin: load tournament list ──
@@ -1057,82 +1206,58 @@ function renderTournamentDetail() {
   document.getElementById('tournament-detail-wrap').innerHTML = html;
 }
 
-// ─── Demo mode ───
-function loadDemoMode() {
-  document.getElementById('challonge-status').textContent = '● Demo Mode';
-  document.getElementById('challonge-status').className = 'challonge-status connected';
-  document.getElementById('btn-load-tournaments').disabled = false;
-  const demo = [
-    {tournament:{id:'d1',url:'d1',name:'RXS Week 14',tournament_type:'single elimination',participants_count:16,state:'complete',started_at:'2025-04-10T08:00:00Z'}},
-    {tournament:{id:'d2',url:'d2',name:'RXS Week 15',tournament_type:'double elimination',participants_count:12,state:'complete',started_at:'2025-04-17T08:00:00Z'}},
-    {tournament:{id:'d3',url:'d3',name:'VG Easter Royale',tournament_type:'swiss',participants_count:20,state:'underway',started_at:'2025-04-20T08:00:00Z'}},
-    {tournament:{id:'d4',url:'d4',name:'HYDRA Invitational',tournament_type:'round robin',participants_count:8,state:'pending',started_at:null}},
-  ];
-  renderTournamentList(demo);
-  document.querySelectorAll('.tournament-item').forEach((el,i)=>{ el.onclick = ()=>selectDemoTournament(i,el); });
-  showToast('Demo Mode — try all features!', 'success');
-}
-function selectDemoTournament(idx, el) {
-  document.querySelectorAll('.tournament-item').forEach(i=>i.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedTournament = {id:'demo',url:'demo'};
-  const names = ['VG.xUYAPOS','ZPC.JUANDER','HYDRA.REOKI','NONOY X / NOY MAHAW!','VG.TAKAHASHI','LIENATHAN','BOSS X','VG.xBOSSRY','CHEYANNE','KING JUDE','VG.ICHAN','DEAUX','BFD','HYDRA.KAYDEN','ZPC.KHRIZ','FRANCIS X'];
-  currentParticipants = names.map((name,i)=>({display_name:name,name,final_rank:i+1}));
-  renderTournamentDetail();
-  document.getElementById('import-section').style.display = 'block';
-}
+
 
 // ─── Import ───
 function importTournamentResults() {
   const label = document.getElementById('event-label-input').value.trim() || `Event ${eventLabels.length+1}`;
   if (!currentParticipants.length) { showToast('No tournament selected.', 'error'); return; }
-  const newScores = {};
-  currentParticipants.forEach((p,i)=>{
-    const rank = p.final_rank||(i+1);
-    const name = (p.display_name||p.name||'').trim();
-    newScores[name.toLowerCase()] = {pts:getPointsForRank(rank), rank, originalName:name};
-  });
-  let matched=[], unmatched=[];
-  Object.entries(newScores).forEach(([key,val])=>{
-    const found = players.find(p=>p.name.toLowerCase()===key||p.name.toLowerCase().includes(key));
-    if (found) matched.push({player:found,pts:val.pts,rank:val.rank});
-    else unmatched.push({name:val.originalName,pts:val.pts,rank:val.rank});
-  });
-  const encoded = encodeURIComponent(JSON.stringify(newScores));
+  const results = currentParticipants.map((p,i) => ({
+    challongeName: (p.display_name||p.name||'').trim(),
+    rank: p.final_rank||(i+1),
+    pts: getPointsForRank(p.final_rank||(i+1)),
+    matchedPlayer: findPlayerByName((p.display_name||p.name||'').trim())
+  }));
+  const matched = results.filter(r=>r.matchedPlayer);
+  const unmatched = results.filter(r=>!r.matchedPlayer);
+  const safeLabel = encodeURIComponent(label);
+  const safeResults = encodeURIComponent(JSON.stringify(results.map(r=>({...r, matchedPlayer: r.matchedPlayer ? r.matchedPlayer.name : null}))));
   const preview = `<div class="import-preview">
-    <div class="import-title">✅ Preview — ${matched.length} matched, ${unmatched.length} new</div>
-    ${matched.map(m=>`<div class="import-row"><div class="ir-rank">#${m.rank}</div><div class="ir-name">${m.player.name}</div><div class="ir-pts existing">+${m.pts}</div></div>`).join('')}
-    ${unmatched.length?`<div style="margin-top:8px;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:6px 0">New bladers</div>${unmatched.map(u=>`<div class="import-row"><div class="ir-rank">#${u.rank}</div><div class="ir-name">${u.name}<span class="inline-tag">NEW</span></div><div class="ir-pts new">+${u.pts}</div></div>`).join('')}`:''}
+    <div class="import-title">📋 Preview — ${matched.length} matched, ${unmatched.length} new bladers</div>
+    ${matched.map(r=>`<div class="import-row"><div class="ir-rank">#${r.rank}</div><div class="ir-name">${r.challongeName} → <strong>${r.matchedPlayer.name}</strong></div><div class="ir-pts existing">+${r.pts}</div></div>`).join('')}
+    ${unmatched.length?`<div style="margin-top:8px;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:6px 0">New bladers</div>${unmatched.map(r=>`<div class="import-row"><div class="ir-rank">#${r.rank}</div><div class="ir-name">${r.challongeName}<span class="inline-tag">NEW</span></div><div class="ir-pts new">+${r.pts}</div></div>`).join('')}`:''}
     <div style="margin-top:14px;display:flex;gap:8px">
-      <button class="btn primary" onclick="confirmImport('${label}',decodeURIComponent('${encoded}'))">✅ Confirm Import</button>
+      <button class="btn primary" onclick="confirmImport('${safeLabel}','${safeResults}','${selectedTournament?.id||''}')">✅ Confirm Import</button>
       <button class="btn" onclick="document.getElementById('import-preview-wrap').innerHTML=''">Cancel</button>
     </div>
   </div>`;
   document.getElementById('import-preview-wrap').innerHTML = preview;
 }
 
-function confirmImport(label, newScoresStr) {
-  const newScores = JSON.parse(newScoresStr);
+function confirmImport(labelEnc, resultsEnc, tournamentId) {
+  const label = decodeURIComponent(labelEnc);
+  const results = JSON.parse(decodeURIComponent(resultsEnc));
   eventLabels.push(label);
-  players.forEach(p=>{
-    const key = p.name.toLowerCase();
-    const match = Object.entries(newScores).find(([k])=>key===k||key.includes(k));
-    const pts = match?match[1].pts:0;
-    p.scores.push(pts); p.total+=pts;
-  });
-  Object.entries(newScores).forEach(([key,val])=>{
-    const found = players.find(p=>p.name.toLowerCase()===key||p.name.toLowerCase().includes(key));
-    if (!found) {
+  players.forEach(p => { p.scores.push(0); });
+  results.forEach(r => {
+    if (r.matchedPlayer) {
+      const player = players.find(p => p.name === r.matchedPlayer);
+      if (player) { player.scores[player.scores.length-1] = r.pts; player.total += r.pts; }
+    } else {
       const sc = new Array(eventLabels.length).fill(0);
-      sc[sc.length-1] = val.pts;
-      players.push({no:players.length+1,name:val.originalName,scores:sc,total:val.pts,rank:players.length+1});
+      sc[sc.length-1] = r.pts;
+      players.push({no:players.length+1, name:r.challongeName, scores:sc, total:r.pts, rank:players.length+1});
     }
   });
   players.sort((a,b)=>b.total-a.total);
   let rank=1;
   players.forEach((p,i)=>{ if(i>0&&p.total<players[i-1].total) rank=i+1; p.rank=rank; });
+  if (tournamentId && !importedTournamentIds.includes(String(tournamentId))) {
+    importedTournamentIds.push(String(tournamentId));
+    localStorage.setItem('rxs_imported_ids', JSON.stringify(importedTournamentIds));
+  }
   renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
-  document.getElementById('import-preview-wrap').innerHTML = `<div class="api-note">✅ <strong>${label}</strong> imported! Leaderboard updated.</div>`;
+  document.getElementById('import-preview-wrap').innerHTML = `<div class="api-note">✅ <strong>${label}</strong> imported! Leaderboard and Weekly updated.</div>`;
   showToast(`${label} imported!`, 'success');
 }
 
@@ -1144,7 +1269,6 @@ function showTab(tab, btn) {
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   btn.classList.add('active');
-  // Challonge tab: show correct view and auto-load
   if (tab === 'challonge') {
     if (isAdmin) {
       document.getElementById('challonge-admin').style.display = 'block';
@@ -1152,7 +1276,6 @@ function showTab(tab, btn) {
     } else {
       document.getElementById('challonge-admin').style.display = 'none';
       document.getElementById('challonge-public').style.display = 'block';
-      // Auto-load tournaments for public view
       loadPublicTournaments();
     }
   }
