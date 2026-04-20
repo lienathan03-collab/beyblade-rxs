@@ -644,10 +644,7 @@
       <button class="btn primary" style="flex:1" onclick="doLogin()">Login</button>
       <button class="btn" onclick="closeLoginModal()">Cancel</button>
     </div>
-    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--muted2);line-height:1.7">
-      Default credentials: <span style="color:var(--muted);font-family:'Share Tech Mono',monospace">admin / rxs2025</span><br>
-      Change these in the script section of this HTML file.
-    </div>
+
   </div>
 </div>
 
@@ -704,7 +701,7 @@
 //  ADMIN CREDENTIALS — change these before going live!
 // ═══════════════════════════════════════════════════════
 const ADMIN_USERS = [
-  { username: 'admin',  password: 'rxs2025' },
+  { username: 'admin',  password: 'rxs2026' },
   { username: 'rxsadmin', password: 'beyblade2025' },
 ];
 
@@ -1077,18 +1074,7 @@ async function loadTournaments() {
   }
 }
 
-// ── Public view: auto-load tournaments on tab open ──
-async function loadPublicTournaments() {
-  document.getElementById('public-tournament-list').innerHTML = '<div class="loader"><div class="spinner"></div>Loading tournaments…</div>';
-  document.getElementById('public-bracket-view').style.display = 'none';
-  document.getElementById('public-tournament-list').style.display = 'block';
-  try {
-    const data = await fetchChallonge('?action=list');
-    renderPublicTournamentList(data);
-  } catch(e) {
-    document.getElementById('public-tournament-list').innerHTML = `<div class="challonge-locked"><div class="lock-icon">⚠️</div><div class="lock-title">Could not load</div><div class="lock-sub">${e.message}</div></div>`;
-  }
-}
+
 
 function renderPublicTournamentList(data) {
   if (!data || !data.length) {
