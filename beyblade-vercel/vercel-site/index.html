@@ -1029,7 +1029,7 @@ async function renderFeaturedTournament(tour) {
       </div>
       ${autoBanner}
       <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px">
-        <iframe src="https://challonge.com/lienathan/${tour.url}/module?theme=1&multiplier=1.0&show_final_results=1&show_standings=1"
+        <iframe src="https://challonge.com/${tour.url}/module?theme=1&multiplier=1.0&show_final_results=1&show_standings=1"
           width="100%" height="500" frameborder="0" scrolling="auto" allowtransparency="true"
           style="background:transparent;display:block"></iframe>
       </div>
@@ -1112,7 +1112,7 @@ async function openPublicBracket(id, url, name, state) {
   // Embed the Challonge bracket iframe
   document.getElementById('pub-bracket-embed').innerHTML = `
     <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border)">
-      <iframe src="https://challonge.com/lienathan/${url}/module?theme=1&multiplier=1.0&match_width_multiplier=1.0&show_final_results=1&show_standings=1"
+      <iframe src="https://challonge.com/${url}/module?theme=1&multiplier=1.0&match_width_multiplier=1.0&show_final_results=1&show_standings=1"
         width="100%" height="500" frameborder="0" scrolling="auto" allowtransparency="true"
         style="background:transparent;display:block"></iframe>
     </div>`;
