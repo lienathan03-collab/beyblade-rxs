@@ -85,54 +85,70 @@
   /* ── PODIUM ── */
   .podium { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 32px; align-items: end; }
   .podium-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px 16px; text-align: center;
+    border-radius: 12px; text-align: center;
     position: relative; overflow: hidden;
+    min-height: 200px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    border: 2px solid var(--border);
   }
-  .podium-card.p1 { border-color: var(--gold); padding-top: 28px; }
+  .podium-card.p1 { border-color: var(--gold); min-height: 220px; }
   .podium-card.p2 { border-color: var(--silver); order: -1; }
   .podium-card.p3 { border-color: var(--bronze); }
-  .podium-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+
+  /* Photo fills the whole card as background */
+  .podium-bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center top;
+    background-color: var(--surface);
+  }
+  .pa-gold .podium-bg   { background-color: #1a1200; }
+  .pa-silver .podium-bg { background-color: #141414; }
+  .pa-bronze .podium-bg { background-color: #1a0e08; }
+
+  /* Dark gradient overlay so text is always readable */
+  .podium-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.88) 100%);
+    pointer-events: none;
+  }
+  /* Colored top bar */
+  .podium-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; z-index: 2; }
   .p1::before { background: var(--gold); }
   .p2::before { background: var(--silver); }
   .p3::before { background: var(--bronze); }
-  .podium-place { font-family: 'Share Tech Mono', monospace; font-size: 32px; margin-bottom: 8px; }
 
-  /* PHOTO AVATAR */
-  .podium-avatar {
-    width: 100%; height: 160px; border-radius: 10px;
-    margin: 0 auto 12px; position: relative;
-    overflow: hidden; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
+  /* Place emoji — top left */
+  .podium-place {
+    position: absolute; top: 10px; left: 14px;
+    font-size: 22px; z-index: 3; line-height: 1;
   }
-  .podium-avatar img {
-    width: 100%; height: 100%; object-fit: cover; border-radius: 10px;
-    display: block;
-  }
-  .podium-avatar .silhouette {
-    width: 100%; height: 100%; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 30px; position: relative;
-  }
-  .pa-gold .silhouette { background: radial-gradient(circle at 40% 35%, #2a1e00, #1a1200); border: 2px solid var(--gold); border-radius: 10px; }
-  .pa-silver .silhouette { background: radial-gradient(circle at 40% 35%, #202020, #141414); border: 2px solid var(--silver); border-radius: 10px; }
-  .pa-bronze .silhouette { background: radial-gradient(circle at 40% 35%, #2a1508, #1a0e08); border: 2px solid var(--bronze); border-radius: 10px; }
 
-  /* Admin edit overlay on podium photo */
-  .podium-avatar .edit-overlay {
-    position: absolute; inset: 0; border-radius: 10px;
-    background: rgba(0,0,0,0.6); display: none;
-    align-items: center; justify-content: center;
-    font-size: 18px; cursor: pointer; transition: opacity .2s;
+  /* Admin edit button — top right */
+  .podium-edit-btn {
+    position: absolute; top: 8px; right: 10px; z-index: 4;
+    background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px; padding: 4px 8px; font-size: 13px;
+    cursor: pointer; display: none; color: #fff;
   }
-  .admin-active .podium-avatar:hover .edit-overlay { display: flex; }
+  .admin-active .podium-card:hover .podium-edit-btn { display: block; }
 
-  .podium-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
-  .podium-pts { font-family: 'Share Tech Mono', monospace; font-size: 22px; margin-bottom: 6px; }
+  /* Stats sit at the bottom, above the gradient */
+  .podium-stats {
+    position: relative; z-index: 3;
+    padding: 14px 14px 16px;
+  }
+  .podium-name { font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #fff; margin-bottom: 2px; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+  .podium-pts { font-family: 'Share Tech Mono', monospace; font-size: 26px; margin-bottom: 2px; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
   .p1 .podium-pts { color: var(--gold2); }
   .p2 .podium-pts { color: var(--silver); }
   .p3 .podium-pts { color: var(--bronze); }
-  .podium-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .podium-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+
+  /* No-photo silhouette */
+  .podium-no-photo {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 48px; opacity: 0.15; pointer-events: none;
+  }
 
   /* SEASON KING badge */
   .season-king-badge {
@@ -424,17 +440,15 @@
 
 <style>
 .n, .l {
-  color: white;
+  color: #ffffff;
   font-weight: bold;
 
-  /* reverse outline effect */
+  /* black outline only */
   text-shadow:
-    1px 1px 0 black,
-   -1px -1px 0 black,
-    1px -1px 0 black,
-   -1px 1px 0 black,
-
-    0 0 6px rgba(255,255,255,0.7);
+    1px 1px 0 #000,
+   -1px -1px 0 #000,
+    1px -1px 0 #000,
+   -1px 1px 0 #000;
 }
 </style>
 
@@ -476,39 +490,42 @@
   <div class="podium">
 
     <!-- 2nd Place -->
-    <div class="podium-card p2">
+    <div class="podium-card p2 pa-silver" id="card-2nd">
+      <div class="podium-bg" id="bg-2nd"></div>
+      <div class="podium-no-photo">🧍</div>
       <div class="podium-place">🥈</div>
-      <div class="podium-avatar pa-silver" id="avatar-2nd" onclick="adminEditPhoto(2)">
-        <div class="silhouette">🧍</div>
-        <div class="edit-overlay">📷</div>
+      <button class="podium-edit-btn" onclick="adminEditPhoto(2)">📷 Edit</button>
+      <div class="podium-stats">
+        <div class="podium-name" id="p2-name">NONOY X</div>
+        <div class="podium-pts" id="p2-pts">70</div>
+        <div class="podium-label">2nd Place</div>
       </div>
-      <div class="podium-name" id="p2-name">NONOY X</div>
-      <div class="podium-pts" id="p2-pts">70</div>
-      <div class="podium-label">2nd Place</div>
     </div>
 
     <!-- 1st Place — Season King -->
-    <div class="podium-card p1">
+    <div class="podium-card p1 pa-gold" id="card-1st">
+      <div class="podium-bg" id="bg-1st"></div>
+      <div class="podium-no-photo">🧍</div>
       <div class="podium-place">👑</div>
-      <div class="podium-avatar pa-gold" id="avatar-1st" onclick="adminEditPhoto(1)">
-        <div class="silhouette">🧍</div>
-        <div class="edit-overlay">📷</div>
+      <button class="podium-edit-btn" onclick="adminEditPhoto(1)">📷 Edit</button>
+      <div class="podium-stats">
+        <div class="podium-name" id="p1-name">VG.xUYAPOS</div>
+        <div class="podium-pts" id="p1-pts">89</div>
+        <div class="season-king-badge" style="margin-top:4px">👑 Season King</div>
       </div>
-      <div class="podium-name" id="p1-name">VG.xUYAPOS</div>
-      <div class="podium-pts" id="p1-pts">89</div>
-      <div class="season-king-badge">👑 Season King</div>
     </div>
 
     <!-- 3rd Place -->
-    <div class="podium-card p3">
+    <div class="podium-card p3 pa-bronze" id="card-3rd">
+      <div class="podium-bg" id="bg-3rd"></div>
+      <div class="podium-no-photo">🧍</div>
       <div class="podium-place">🥉</div>
-      <div class="podium-avatar pa-bronze" id="avatar-3rd" onclick="adminEditPhoto(3)">
-        <div class="silhouette">🧍</div>
-        <div class="edit-overlay">📷</div>
+      <button class="podium-edit-btn" onclick="adminEditPhoto(3)">📷 Edit</button>
+      <div class="podium-stats">
+        <div class="podium-name" id="p3-name">VG.xBOSSRY</div>
+        <div class="podium-pts" id="p3-pts">69</div>
+        <div class="podium-label">3rd Place</div>
       </div>
-      <div class="podium-name" id="p3-name">VG.xBOSSRY</div>
-      <div class="podium-pts" id="p3-pts">69</div>
-      <div class="podium-label">3rd Place</div>
     </div>
 
   </div>
@@ -896,13 +913,17 @@ function loadSavedPhotos() {
 function applyPodiumPhotos() {
   [1,2,3].forEach(n => {
     const url = podiumPhotos[n];
-    const avatarId = n===1?'avatar-1st':n===2?'avatar-2nd':'avatar-3rd';
-    const el = document.getElementById(avatarId);
-    if (!el) return;
+    const bgId = n===1?'bg-1st':n===2?'bg-2nd':'bg-3rd';
+    const cardId = n===1?'card-1st':n===2?'card-2nd':'card-3rd';
+    const bgEl = document.getElementById(bgId);
+    const noPhotoEl = document.querySelector('#'+cardId+' .podium-no-photo');
+    if (!bgEl) return;
     if (url) {
-      el.innerHTML = `<img src="${url}" alt="Player ${n}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;display:block" onerror="this.parentElement.innerHTML='<div class=\\'silhouette\\'>🧍</div><div class=\\'edit-overlay\\'>📷</div>'" /><div class="edit-overlay">📷</div>`;
+      bgEl.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentElement.innerHTML=\'\';document.querySelector(\'#'+cardId+' .podium-no-photo\').style.display=\'flex\';" />';
+      if (noPhotoEl) noPhotoEl.style.display = 'none';
     } else {
-      el.innerHTML = `<div class="silhouette">🧍</div><div class="edit-overlay">📷</div>`;
+      bgEl.innerHTML = '';
+      if (noPhotoEl) noPhotoEl.style.display = 'flex';
     }
   });
 }
