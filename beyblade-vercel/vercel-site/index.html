@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyblade RXS — Roxas City Community</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080808; --surface: #0f0f0f; --surface2: #161616; --surface3: #1e1e1e;
+    --border: #242424; --border2: #333; --text: #f0f0f0; --muted: #666; --muted2: #444;
+    --accent: #ffffff; --gold: #d4a017; --gold2: #f5c842; --silver: #a8b0b8;
+    --bronze: #cd7f32; --red: #e03030; --green: #28a855; --blue: #3a8fd4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Exo 2', sans-serif; min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 32px; display: flex; align-items: center; justify-content: space-between;
+    height: 60px; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon { width: 34px; height: 34px; }
+  .logo-text { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
+  .logo-x { color: var(--gold); font-style: italic; }
+  nav { display: flex; gap: 4px; align-items: center; }
+  nav button {
+    background: transparent; border: none; color: var(--muted);
+    font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 14px;
+    border-radius: 6px; cursor: pointer; transition: all .15s;
+  }
+  nav button:hover, nav button.active { background: var(--surface2); color: var(--accent); }
+  nav button.active { border-bottom: 2px solid var(--gold); border-radius: 6px 6px 0 0; }
+
+  /* ADMIN BADGE IN NAV */
+  .nav-admin-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: #1a1200 !important; border: 1px solid var(--gold) !important;
+    color: var(--gold) !important; border-radius: 6px !important;
+    font-size: 12px !important; padding: 6px 12px !important;
+  }
+  .nav-admin-btn:hover { background: #2a1e00 !important; }
+  .nav-login-hint {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px;
+    color: var(--muted2); padding: 6px 10px; letter-spacing: 1px;
+    cursor: pointer; border-radius: 6px; transition: color .15s;
+  }
+  .nav-login-hint:hover { color: var(--muted); }
+
+  /* HERO */
+  .hero {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 40px 32px; text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 500px; height: 500px; border-radius: 50%; border: 1px solid #1a1a1a; pointer-events: none; }
+  .hero::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 320px; height: 320px; border-radius: 50%; border: 1px solid #1d1d1d; pointer-events: none; }
+  .hero-title { font-family: 'Rajdhani', sans-serif; font-size: 42px; font-weight: 700; letter-spacing: 8px; text-transform: uppercase; color: var(--accent); position: relative; margin-bottom: 8px; }
+  .hero-sub { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); position: relative; margin-bottom: 28px; }
+  .hero-stats { display: flex; justify-content: center; gap: 40px; position: relative; }
+  .hero-stat { text-align: center; }
+  .hero-stat .n { font-family: 'Share Tech Mono', monospace; font-size: 28px; color: var(--accent); display: block; }
+  .hero-stat .l { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .hero-divider { width: 1px; background: var(--border); align-self: stretch; }
+
+  /* SECTIONS */
+  .section { display: none; padding: 28px 32px; max-width: 1200px; margin: 0 auto; }
+  .section.active { display: block; }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .section-title { font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* ── PODIUM ── */
+  .podium { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 32px; align-items: end; }
+  .podium-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 16px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .podium-card.p1 { border-color: var(--gold); padding-top: 28px; }
+  .podium-card.p2 { border-color: var(--silver); order: -1; }
+  .podium-card.p3 { border-color: var(--bronze); }
+  .podium-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .p1::before { background: var(--gold); }
+  .p2::before { background: var(--silver); }
+  .p3::before { background: var(--bronze); }
+  .podium-place { font-family: 'Share Tech Mono', monospace; font-size: 32px; margin-bottom: 8px; }
+
+  /* PHOTO AVATAR */
+  .podium-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    margin: 0 auto 10px; position: relative;
+    overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .podium-avatar img {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+    display: block;
+  }
+  .podium-avatar .silhouette {
+    width: 100%; height: 100%; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; position: relative;
+  }
+  .pa-gold .silhouette { background: radial-gradient(circle at 40% 35%, #2a1e00, #1a1200); border: 2px solid var(--gold); }
+  .pa-silver .silhouette { background: radial-gradient(circle at 40% 35%, #202020, #141414); border: 2px solid var(--silver); }
+  .pa-bronze .silhouette { background: radial-gradient(circle at 40% 35%, #2a1508, #1a0e08); border: 2px solid var(--bronze); }
+
+  /* Admin edit overlay on podium photo */
+  .podium-avatar .edit-overlay {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: rgba(0,0,0,0.6); display: none;
+    align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; transition: opacity .2s;
+  }
+  .admin-active .podium-avatar:hover .edit-overlay { display: flex; }
+
+  .podium-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .podium-pts { font-family: 'Share Tech Mono', monospace; font-size: 22px; margin-bottom: 6px; }
+  .p1 .podium-pts { color: var(--gold2); }
+  .p2 .podium-pts { color: var(--silver); }
+  .p3 .podium-pts { color: var(--bronze); }
+  .podium-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+  /* SEASON KING badge */
+  .season-king-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: linear-gradient(135deg, #1f1500, #2a1e00);
+    border: 1px solid var(--gold); border-radius: 20px;
+    padding: 3px 12px; margin-top: 6px;
+    font-family: 'Rajdhani', sans-serif; font-size: 11px;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold2);
+  }
+
+  /* LEADERBOARD */
+  .search-row { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; }
+  .search-input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; color: var(--text); font-family: 'Exo 2', sans-serif; font-size: 14px; outline: none; transition: border-color .15s; }
+  .search-input:focus { border-color: var(--border2); }
+  .search-input::placeholder { color: var(--muted2); }
+  .filter-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--muted); font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--gold); color: var(--gold); }
+  .lb-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .lb-table th { font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .lb-table th.right { text-align: right; }
+  .lb-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .lb-table tr:hover td { background: var(--surface); }
+  .lb-table tr:last-child td { border-bottom: none; }
+  .rank-num { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--muted); text-align: center; min-width: 30px; }
+  .rank-num.gold { color: var(--gold2); font-size: 15px; }
+  .rank-num.silver { color: var(--silver); font-size: 15px; }
+  .rank-num.bronze { color: var(--bronze); font-size: 15px; }
+  .blader-name { font-weight: 600; font-size: 14px; color: var(--text); }
+  .blader-name.top3 { color: var(--accent); }
+  .tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+  .tag-vg { background: #0d1a2e; color: #4a9fd4; border: 0.5px solid #1a3a5a; }
+  .tag-zpc { background: #1a0d2e; color: #9977cc; border: 0.5px solid #3a1a5a; }
+  .tag-hydra { background: #0d2e1a; color: #4aaa6a; border: 0.5px solid #1a5a2a; }
+  .tag-hstlr { background: #2e1a0d; color: #d47a3a; border: 0.5px solid #5a2a1a; }
+  .score { font-family: 'Share Tech Mono', monospace; font-size: 15px; text-align: right; color: var(--accent); }
+  .score.champ { color: var(--gold2); }
+  .ws { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); background: var(--surface2); border-radius: 3px; padding: 1px 5px; min-width: 22px; text-align: center; }
+  .ws.high { color: var(--gold); background: #1a1200; }
+  .ws.win { color: var(--green); }
+  .rank-badge { font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; text-align: center; white-space: nowrap; }
+  .rb-1 { background: #1f1500; color: var(--gold2); border: 1px solid var(--gold); }
+  .rb-2 { background: #141414; color: var(--silver); border: 1px solid #666; }
+  .rb-3 { background: #1a0e08; color: var(--bronze); border: 1px solid var(--bronze); }
+  .rb-n { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .page-info { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); text-align: right; margin-top: 12px; }
+
+  /* ACHIEVEMENTS */
+  .ach-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .ach-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 14px; }
+  .ach-icon { font-size: 28px; flex-shrink: 0; }
+  .ach-info .name { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
+  .ach-info .desc { font-size: 11px; color: var(--muted); letter-spacing: .5px; }
+  .ach-info .holder { font-size: 12px; color: var(--gold); margin-top: 4px; font-weight: 600; }
+
+  /* POINTS */
+  .points-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 32px; }
+  .point-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .point-card .pts { font-family: 'Share Tech Mono', monospace; font-size: 20px; color: var(--gold); }
+  .point-card .lbl { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9000; opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 32px; width: 100%; max-width: 400px;
+    position: relative; transform: translateY(16px);
+    transition: transform .25s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title {
+    font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase; color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .modal-sub { font-size: 12px; color: var(--muted); letter-spacing: 1px; margin-bottom: 24px; }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none; color: var(--muted);
+    font-size: 20px; cursor: pointer; line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .form-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .form-input { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 13px; outline: none; transition: border-color .15s; width: 100%; }
+  .form-input:focus { border-color: var(--gold); }
+  .form-input::placeholder { color: var(--muted2); }
+  .modal-error { color: var(--red); font-size: 12px; margin-bottom: 12px; min-height: 16px; letter-spacing: .5px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+
+  /* BUTTONS */
+  .btn { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 18px; color: var(--text); font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .btn:hover { border-color: var(--gold); color: var(--gold); }
+  .btn.primary { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 800; }
+  .btn.primary:hover { background: var(--gold2); border-color: var(--gold2); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  .btn.danger { border-color: var(--red); color: var(--red); }
+  .btn.danger:hover { background: #1f0a0a; }
+
+  /* ── CHALLONGE TAB ── */
+  .challonge-locked {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 80px 20px; text-align: center;
+  }
+  .lock-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+  .lock-title { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .lock-sub { font-size: 13px; color: var(--muted2); margin-bottom: 24px; line-height: 1.6; }
+
+  /* Public live view */
+  .challonge-live-view { }
+  .live-tournament-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-bottom: 12px;
+  }
+  .ltc-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .ltc-icon { font-size: 24px; }
+  .ltc-name { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+  .ltc-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .ltc-status { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .ltc-status.live { color: var(--green); border: 1px solid var(--green); background: #0a1f0f; animation: pulse 2s ease-in-out infinite; }
+  .ltc-status.done { color: var(--silver); border: 1px solid #444; background: var(--surface2); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+  .ltc-participants { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
+  .ltc-p { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .ltc-p .pr { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); width: 20px; }
+  .ltc-p .pn { flex: 1; font-weight: 600; }
+  .ltc-p .pp { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--gold); }
+
+  /* Admin challonge panel */
+  .challonge-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+  .challonge-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .challonge-logo { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #e8531d, #c93d10); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .challonge-title { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+  .challonge-subtitle { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
+  .challonge-status { margin-left: auto; font-family: 'Share Tech Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border2); color: var(--muted); }
+  .challonge-status.connected { color: var(--green); border-color: var(--green); background: #0a1f0f; }
+  .challonge-status.error { color: var(--red); border-color: var(--red); background: #1f0a0a; }
+  .challonge-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 16px; }
+  .challonge-actions { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--border); }
+  .api-note { background: #0d1a10; border: 1px solid #1a3a1f; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #5aaa7a; margin-bottom: 16px; line-height: 1.6; }
+  .api-note a { color: var(--gold); text-decoration: none; }
+  .proxy-banner { background: #1a120a; border: 1px solid #5a3a1a; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #d47a3a; margin-bottom: 16px; line-height: 1.6; display: none; }
+  .challonge-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .challonge-col-title { font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .tournament-list { display: flex; flex-direction: column; gap: 8px; }
+  .tournament-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: border-color .15s; }
+  .tournament-item:hover { border-color: var(--gold); }
+  .tournament-item.selected { border-color: var(--gold); background: #1a1500; }
+  .t-icon { font-size: 20px; flex-shrink: 0; }
+  .t-info { flex: 1; min-width: 0; }
+  .t-name { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
+  .t-meta { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
+  .t-status { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .t-status.complete { color: var(--green); border: 1px solid var(--green); background: #0a1f0f; }
+  .t-status.underway { color: var(--gold); border: 1px solid var(--gold); background: #1a1200; }
+  .t-status.pending { color: var(--muted); border: 1px solid var(--border2); }
+  .bracket-preview { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .bracket-title { font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .bracket-participant { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .bracket-participant:last-child { border-bottom: none; }
+  .bp-rank { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); width: 24px; text-align: center; flex-shrink: 0; }
+  .bp-name { font-size: 13px; font-weight: 600; flex: 1; }
+  .bp-pts { font-family: 'Share Tech Mono', monospace; font-size: 13px; color: var(--gold); }
+  .import-preview { background: var(--surface2); border: 1px solid #1a3a1f; border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .import-title { font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .import-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .import-row:last-child { border-bottom: none; }
+  .ir-rank { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); width: 20px; }
+  .ir-name { flex: 1; }
+  .ir-pts { font-family: 'Share Tech Mono', monospace; font-size: 12px; }
+  .ir-pts.new { color: var(--green); }
+  .ir-pts.existing { color: var(--gold); }
+  .loader { display: flex; align-items: center; gap: 10px; padding: 20px; color: var(--muted); font-family: 'Share Tech Mono', monospace; font-size: 12px; }
+  .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border2); border-top-color: var(--gold); animation: spin .8s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-state { text-align: center; padding: 32px; color: var(--muted); font-family: 'Share Tech Mono', monospace; font-size: 12px; letter-spacing: 1px; }
+  .event-name-input-wrap { display: flex; gap: 8px; margin-top: 12px; }
+  .inline-tag { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; margin-left: 6px; vertical-align: middle; background: #0d1a1a; color: #3aaa8f; border: 0.5px solid #1a3a3a; }
+
+  /* PHOTO UPLOAD MODAL */
+  .photo-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 12px; display: block; border: 2px solid var(--border2); }
+  .photo-url-note { font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface3); border: 1px solid var(--border2); border-radius: 10px; padding: 14px 20px; font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 1px; color: var(--text); z-index: 9999; opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s; max-width: 320px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+
+  /* ADMIN INDICATOR BAR */
+  .admin-bar {
+    background: #1a1200; border-bottom: 1px solid var(--gold);
+    padding: 6px 32px; display: flex; align-items: center;
+    gap: 12px; display: none;
+  }
+  .admin-bar.visible { display: flex; }
+  .admin-bar-text { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--gold); letter-spacing: 1px; }
+  .admin-bar-actions { margin-left: auto; display: flex; gap: 8px; }
+
+  footer { text-align: center; padding: 24px; border-top: 1px solid var(--border); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted2); margin-top: 40px; }
+
+  @media (max-width: 700px) {
+    header { padding: 0 16px; }
+    .hero { padding: 28px 16px; }
+    .hero-title { font-size: 26px; letter-spacing: 4px; }
+    .hero-stats { gap: 20px; }
+    .section { padding: 20px 16px; }
+    .podium { grid-template-columns: 1fr; }
+    .p2 { order: 0; }
+    nav button { font-size: 11px; padding: 6px 10px; }
+    .challonge-form { grid-template-columns: 1fr; }
+    .challonge-cols { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ADMIN BAR (shown when admin is logged in) -->
+<div class="admin-bar" id="admin-bar">
+  <span style="font-size:14px">👑</span>
+  <span class="admin-bar-text">ADMIN MODE — Changes are live. Viewers see Challonge results only.</span>
+  <div class="admin-bar-actions">
+    <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openPhotoModal()">📸 Edit Podium Photos</button>
+    <button class="btn danger" style="font-size:11px;padding:5px 12px;" onclick="adminLogout()">Logout</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="17" cy="17" r="15.5" stroke="#444" stroke-width="1"/>
+      <circle cx="17" cy="17" r="10" stroke="#555" stroke-width="0.8"/>
+      <circle cx="17" cy="17" r="5" stroke="#666" stroke-width="0.8"/>
+      <circle cx="17" cy="17" r="2" fill="#d4a017"/>
+      <line x1="17" y1="1.5" x2="17" y2="32.5" stroke="#2a2a2a" stroke-width="0.5"/>
+      <line x1="1.5" y1="17" x2="32.5" y2="17" stroke="#2a2a2a" stroke-width="0.5"/>
+      <line x1="6" y1="6" x2="28" y2="28" stroke="#222" stroke-width="0.5"/>
+      <line x1="28" y1="6" x2="6" y2="28" stroke="#222" stroke-width="0.5"/>
+    </svg>
+    <span class="logo-text">BEYBLADE R<span class="logo-x">X</span>S</span>
+  </div>
+  <nav>
+    <button class="active" onclick="showTab('leaderboard', this)">Leaderboard</button>
+    <button onclick="showTab('weekly', this)">Weekly</button>
+    <button onclick="showTab('achievements', this)">Achievements</button>
+    <button onclick="showTab('challonge', this)">⚡ Challonge</button>
+    <button onclick="showTab('points', this)">Points</button>
+    <span class="nav-login-hint" id="nav-login-hint" onclick="openLoginModal()" title="Admin Login">🔐</span>
+    <button class="nav-admin-btn" id="nav-admin-badge" style="display:none" onclick="adminLogout()">👑 Admin</button>
+  </nav>
+</header>
+
+<div class="hero">
+  <div class="hero-title">Beyblade R<span style="color:var(--gold);font-style:italic">X</span>S</div>
+  <div class="hero-sub">Roxas City Community · Season Rankings</div>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="n" id="stat-bladers">60</span><span class="l">Bladers</span></div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat"><span class="n" id="stat-events">20</span><span class="l">Events</span></div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat"><span class="n" id="stat-ranks">37</span><span class="l">Ranks</span></div>
+    <div class="hero-divider"></div>
+    <div class="hero-stat"><span class="n" id="topScore">89</span><span class="l">Top Score</span></div>
+  </div>
+</div>
+
+<!-- ══════════════ LEADERBOARD TAB ══════════════ -->
+<div id="tab-leaderboard" class="section active">
+  <div class="podium">
+
+    <!-- 2nd Place -->
+    <div class="podium-card p2">
+      <div class="podium-place">🥈</div>
+      <div class="podium-avatar pa-silver" id="avatar-2nd" onclick="adminEditPhoto(2)">
+        <div class="silhouette">🧍</div>
+        <div class="edit-overlay">📷</div>
+      </div>
+      <div class="podium-name" id="p2-name">NONOY X</div>
+      <div class="podium-pts" id="p2-pts">70</div>
+      <div class="podium-label">2nd Place</div>
+    </div>
+
+    <!-- 1st Place — Season King -->
+    <div class="podium-card p1">
+      <div class="podium-place">👑</div>
+      <div class="podium-avatar pa-gold" id="avatar-1st" onclick="adminEditPhoto(1)">
+        <div class="silhouette">🧍</div>
+        <div class="edit-overlay">📷</div>
+      </div>
+      <div class="podium-name" id="p1-name">VG.xUYAPOS</div>
+      <div class="podium-pts" id="p1-pts">89</div>
+      <div class="season-king-badge">👑 Season King</div>
+    </div>
+
+    <!-- 3rd Place -->
+    <div class="podium-card p3">
+      <div class="podium-place">🥉</div>
+      <div class="podium-avatar pa-bronze" id="avatar-3rd" onclick="adminEditPhoto(3)">
+        <div class="silhouette">🧍</div>
+        <div class="edit-overlay">📷</div>
+      </div>
+      <div class="podium-name" id="p3-name">VG.xBOSSRY</div>
+      <div class="podium-pts" id="p3-pts">69</div>
+      <div class="podium-label">3rd Place</div>
+    </div>
+
+  </div>
+
+  <div class="section-header">
+    <span class="section-title">Full Rankings</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="search-row">
+    <input class="search-input" type="text" placeholder="Search blader..." oninput="filterTable(this.value)" />
+    <button class="filter-btn active" onclick="filterTag('all', this)">All</button>
+    <button class="filter-btn" onclick="filterTag('VG', this)">VG</button>
+    <button class="filter-btn" onclick="filterTag('ZPC', this)">ZPC</button>
+    <button class="filter-btn" onclick="filterTag('HYDRA', this)">HYDRA</button>
+    <button class="filter-btn" onclick="filterTag('HSTLR', this)">HSTLR</button>
+  </div>
+  <table class="lb-table">
+    <thead><tr>
+      <th style="width:40px;text-align:center">Rank</th>
+      <th>Blader</th><th>Team</th>
+      <th class="right">Points</th><th class="right">Season Rank</th>
+    </tr></thead>
+    <tbody id="lb-body"></tbody>
+  </table>
+  <div class="page-info" id="page-info"></div>
+</div>
+
+<!-- ══════════════ WEEKLY TAB ══════════════ -->
+<div id="tab-weekly" class="section">
+  <div class="section-header">
+    <span class="section-title">Weekly Scores — Top 20 Bladers</span>
+    <div class="section-line"></div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="lb-table">
+      <thead><tr id="weekly-header-row"><th>Blader</th></tr></thead>
+      <tbody id="weekly-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════ ACHIEVEMENTS TAB ══════════════ -->
+<div id="tab-achievements" class="section">
+  <div class="section-header"><span class="section-title">Hall of Fame</span><div class="section-line"></div></div>
+  <div class="ach-grid">
+    <div class="ach-card"><div class="ach-icon">👑</div><div class="ach-info"><div class="name">Season King</div><div class="desc">Highest total points this season</div><div class="holder">VG.xUYAPOS — 89 pts</div></div></div>
+    <div class="ach-card"><div class="ach-icon">🥈</div><div class="ach-info"><div class="name">Runner Up</div><div class="desc">Second highest total points</div><div class="holder">NONOY X — 70 pts</div></div></div>
+    <div class="ach-card"><div class="ach-icon">🥉</div><div class="ach-info"><div class="name">Third Place</div><div class="desc">Third highest total points</div><div class="holder">VG.xBOSSRY — 69 pts</div></div></div>
+    <div class="ach-card"><div class="ach-icon">⚡</div><div class="ach-info"><div class="name">Most Events</div><div class="desc">Participated in most events</div><div class="holder">VG.xUYAPOS — 20 events</div></div></div>
+    <div class="ach-card"><div class="ach-icon">🎯</div><div class="ach-info"><div class="name">Perfect Score</div><div class="desc">Scored 10 pts in a single event</div><div class="holder">NONOY X, CHEYANNE, HYDRA.KAYDEN</div></div></div>
+    <div class="ach-card"><div class="ach-icon">🔥</div><div class="ach-info"><div class="name">Top VG Member</div><div class="desc">Highest scoring VG team member</div><div class="holder">VG.xUYAPOS — 89 pts</div></div></div>
+    <div class="ach-card"><div class="ach-icon">💎</div><div class="ach-info"><div class="name">Top ZPC Member</div><div class="desc">Highest scoring ZPC team member</div><div class="holder">ZPC.JUANDER — 65 pts</div></div></div>
+    <div class="ach-card"><div class="ach-icon">🐉</div><div class="ach-info"><div class="name">Top HYDRA Member</div><div class="desc">Highest scoring HYDRA team member</div><div class="holder">HYDRA.REOKI — 60 pts</div></div></div>
+    <div class="ach-card"><div class="ach-icon">⭐</div><div class="ach-info"><div class="name">Early Champion</div><div class="desc">Won first event (Week 1)</div><div class="holder">HSTLR. CHAPSILOG — 8 pts</div></div></div>
+    <div class="ach-card"><div class="ach-icon">👑</div><div class="ach-info"><div class="name">VANZ Bday King</div><div class="desc">Won the VANZ Birthday event</div><div class="holder">NONOY X / ZPC.JUANDER</div></div></div>
+  </div>
+</div>
+
+<!-- ══════════════ CHALLONGE TAB ══════════════ -->
+<div id="tab-challonge" class="section">
+
+  <!-- PUBLIC VIEW (non-admin sees this) -->
+  <div id="challonge-public">
+    <div class="section-header">
+      <span class="section-title">⚡ Live Tournaments — lienathan</span>
+      <div class="section-line"></div>
+      <button class="btn" id="pub-refresh-btn" onclick="loadPublicTournaments()" style="font-size:11px;padding:5px 12px;">🔄 Refresh</button>
+    </div>
+
+    <!-- Tournament list (shown first) -->
+    <div id="public-tournament-list">
+      <div class="loader"><div class="spinner"></div>Loading tournaments from Challonge…</div>
+    </div>
+
+    <!-- Bracket view (shown when a tournament is clicked) -->
+    <div id="public-bracket-view" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <button class="btn" onclick="backToTournamentList()" style="font-size:11px;padding:5px 12px;">← Back</button>
+        <div id="pub-bracket-title" style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent)"></div>
+        <div id="pub-bracket-status" class="ltc-status"></div>
+      </div>
+      <!-- Challonge embed iframe -->
+      <div id="pub-bracket-embed" style="margin-bottom:20px"></div>
+      <!-- Participants list -->
+      <div id="pub-participants-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN VIEW (only shown when logged in as admin) -->
+  <div id="challonge-admin" style="display:none">
+    <div class="challonge-panel">
+      <div class="challonge-header">
+        <div class="challonge-logo">🏆</div>
+        <div>
+          <div class="challonge-title">Challonge Integration</div>
+          <div class="challonge-subtitle">Auto-connected via Netlify · Account: lienathan</div>
+        </div>
+        <div class="challonge-status connected" id="challonge-status">● Connected</div>
+      </div>
+
+      <div class="api-note">
+        ✅ <strong>Auto-connected!</strong> Your API key is securely stored in Netlify — it's never visible to anyone. Tournaments from your <strong>lienathan</strong> Challonge account load automatically. Just create a tournament on Challonge and click Refresh below.
+      </div>
+
+      <div class="challonge-actions">
+        <button class="btn primary" id="btn-load-tournaments" onclick="loadTournaments()">📋 Load My Tournaments</button>
+        <button class="btn" id="btn-refresh" onclick="loadTournaments()">🔄 Refresh</button>
+        <button class="btn" onclick="loadDemoMode()" style="border-color:#3a8fd4;color:#3a8fd4">🎮 Demo Mode</button>
+      </div>
+    </div>
+
+    <div class="challonge-cols">
+      <div>
+        <div class="challonge-col-title">📋 Your Tournaments</div>
+        <div id="tournament-list-wrap"><div class="empty-state">Click "Load My Tournaments" to begin</div></div>
+      </div>
+      <div>
+        <div class="challonge-col-title">🎯 Selected Tournament</div>
+        <div id="tournament-detail-wrap"><div class="empty-state">Select a tournament to view details</div></div>
+      </div>
+    </div>
+
+    <div id="import-section" style="display:none;margin-top:24px">
+      <div class="section-header">
+        <span class="section-title">Import to Leaderboard</span>
+        <div class="section-line"></div>
+      </div>
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted);line-height:1.7">
+        Assign final placements to season points, then add as a new event column. Give the event a label first:
+      </div>
+      <div class="event-name-input-wrap">
+        <input class="form-input" type="text" id="event-label-input" placeholder="e.g. W14 or HYDRA ER" style="max-width:280px" />
+        <button class="btn primary" id="btn-import" onclick="importTournamentResults()">⬇ Import to Leaderboard</button>
+      </div>
+      <div id="import-preview-wrap" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════ POINTS TAB ══════════════ -->
+<div id="tab-points" class="section">
+  <div class="section-header"><span class="section-title">Point System</span><div class="section-line"></div></div>
+  <div class="points-grid">
+    <div class="point-card" style="border-color:var(--gold)"><span class="pts" style="color:var(--gold2)">8</span><span class="lbl">👑 Season King</span></div>
+    <div class="point-card"><span class="pts">6</span><span class="lbl">🥈 2nd Place</span></div>
+    <div class="point-card"><span class="pts">5</span><span class="lbl">🥉 3rd Place</span></div>
+    <div class="point-card"><span class="pts">4</span><span class="lbl">4️⃣ 4th Place</span></div>
+    <div class="point-card"><span class="pts">3</span><span class="lbl">🏅 Top 8</span></div>
+    <div class="point-card"><span class="pts">2</span><span class="lbl">🎖️ Top 16</span></div>
+    <div class="point-card"><span class="pts">1</span><span class="lbl">✅ Participant</span></div>
+    <div class="point-card"><span class="pts">3</span><span class="lbl">👑 Swiss King/Queen</span></div>
+    <div class="point-card"><span class="pts">2</span><span class="lbl">⚔️ Swiss Slayer</span></div>
+  </div>
+  <div class="section-header" style="margin-top:20px"><span class="section-title">Team Totals</span><div class="section-line"></div></div>
+  <div class="points-grid" id="team-totals"></div>
+</div>
+
+<footer>Beyblade RXS · Roxas City Community · Season 1</footer>
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════ LOGIN MODAL ══════════════ -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeLoginModal()">✕</button>
+    <div class="modal-title">Admin Login</div>
+    <div class="modal-sub">Enter your admin credentials to access Challonge controls</div>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" type="text" id="login-user" placeholder="admin username" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <div class="modal-error" id="login-error"></div>
+    <div class="modal-actions">
+      <button class="btn primary" style="flex:1" onclick="doLogin()">Login</button>
+      <button class="btn" onclick="closeLoginModal()">Cancel</button>
+    </div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--muted2);line-height:1.7">
+      Default credentials: <span style="color:var(--muted);font-family:'Share Tech Mono',monospace">admin / rxs2025</span><br>
+      Change these in the script section of this HTML file.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PHOTO EDIT MODAL ══════════════ -->
+<div class="modal-overlay" id="photo-modal">
+  <div class="modal" style="max-width:460px">
+    <button class="modal-close" onclick="closePhotoModal()">✕</button>
+    <div class="modal-title">Edit Podium Photos</div>
+    <div class="modal-sub">Paste an image URL for each Top 3 player. Works with any direct image link (Facebook, Imgur, Discord CDN, etc.)</div>
+
+    <div class="photo-url-note">💡 Tip: On Facebook, right-click a photo → "Open image in new tab" → copy the URL from the address bar.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+      <div style="text-align:center">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:6px">👑 1st</div>
+        <img id="prev-1" class="photo-preview" src="" onerror="this.style.display='none'" style="display:none" />
+        <div id="prev-1-sil" style="width:80px;height:80px;border-radius:50%;background:#1a1200;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px">🧍</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--silver);margin-bottom:6px">🥈 2nd</div>
+        <img id="prev-2" class="photo-preview" src="" onerror="this.style.display='none'" style="display:none" />
+        <div id="prev-2-sil" style="width:80px;height:80px;border-radius:50%;background:#141414;border:2px solid var(--silver);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px">🧍</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--bronze);margin-bottom:6px">🥉 3rd</div>
+        <img id="prev-3" class="photo-preview" src="" onerror="this.style.display='none'" style="display:none" />
+        <div id="prev-3-sil" style="width:80px;height:80px;border-radius:50%;background:#1a0e08;border:2px solid var(--bronze);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px">🧍</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">👑 1st Place — Image URL</label>
+      <input class="form-input" type="text" id="photo-url-1" placeholder="https://..." oninput="previewPhoto(1,this.value)" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">🥈 2nd Place — Image URL</label>
+      <input class="form-input" type="text" id="photo-url-2" placeholder="https://..." oninput="previewPhoto(2,this.value)" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">🥉 3rd Place — Image URL</label>
+      <input class="form-input" type="text" id="photo-url-3" placeholder="https://..." oninput="previewPhoto(3,this.value)" />
+    </div>
+
+    <div class="modal-actions" style="margin-top:8px">
+      <button class="btn primary" style="flex:1" onclick="applyPhotos()">✅ Apply Photos</button>
+      <button class="btn danger" onclick="clearPhotos()">🗑 Clear All</button>
+      <button class="btn" onclick="closePhotoModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  ADMIN CREDENTIALS — change these before going live!
+// ═══════════════════════════════════════════════════════
+const ADMIN_USERS = [
+  { username: 'admin',  password: 'rxs2025' },
+  { username: 'rxsadmin', password: 'beyblade2025' },
+];
+
+let isAdmin = false;
+
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+let players = [
+  {no:1,name:"VG.xUYAPOS",scores:[6,6,8,8,8,1,1,3,6,5,8,10,1,1,5,5,2,1,3,1],total:89,rank:1},
+  {no:2,name:"NONOY X / NOY MAHAW!",scores:[2,5,8,2,5,1,1,10,0,1,8,1,0,6,0,2,2,0,8,8],total:70,rank:2},
+  {no:3,name:"VG.xBOSSRY",scores:[2,3,2,1,6,1,8,2,1,0,6,5,3,1,4,6,8,5,3,2],total:69,rank:3},
+  {no:4,name:"ZPC.JUANDER",scores:[2,8,1,2,3,2,1,5,3,1,4,1,5,8,8,5,1,2,3,0],total:65,rank:4},
+  {no:5,name:"HYDRA.REOKI",scores:[1,3,1,1,6,1,5,1,2,2,2,2,8,0,2,8,6,5,3,1],total:60,rank:5},
+  {no:6,name:"VG.TAKAHASHI",scores:[4,1,2,1,3,1,3,1,6,1,1,3,2,8,2,1,1,8,4,2],total:55,rank:6},
+  {no:7,name:"LIENATHAN",scores:[1,4,1,2,3,0,6,2,2,4,1,2,6,2,2,2,1,2,8,3],total:54,rank:7},
+  {no:8,name:"VG. MS. LYN",scores:[5,0,1,0,8,2,4,3,0,2,1,1,2,3,8,1,1,2,2,4],total:45,rank:8},
+  {no:9,name:"VG.xCHRISLYN",scores:[3,2,2,6,4,1,1,2,3,0,1,1,1,5,1,4,2,3,2,1],total:45,rank:9},
+  {no:10,name:"KING JUDE",scores:[5,1,1,4,3,1,2,1,8,1,1,1,1,0,2,1,6,1,2,1],total:43,rank:10},
+  {no:11,name:"CHEYANNE",scores:[2,5,1,2,1,0,1,9,6,2,1,1,1,1,1,1,1,2,2,2],total:42,rank:11},
+  {no:12,name:"HYDRA.KAYDEN",scores:[1,2,3,3,1,1,1,1,2,6,0,9,4,0,0,1,2,3,0,1],total:41,rank:12},
+  {no:13,name:"BOSS X",scores:[2,1,5,1,5,1,0,1,0,1,0,4,0,1,0,2,0,1,4,10],total:39,rank:13},
+  {no:14,name:"VG.TETSUYA",scores:[1,2,1,1,3,1,2,2,1,1,2,1,2,2,3,5,3,1,3,2],total:39,rank:13},
+  {no:15,name:"ZPC.KHAJI / INCISION",scores:[1,1,1,2,1,0,3,3,1,2,0,1,3,2,6,3,2,1,2,0],total:35,rank:14},
+  {no:16,name:"DEAUX",scores:[0,0,0,0,0,0,1,4,0,8,1,2,0,1,0,2,0,8,2,6],total:35,rank:14},
+  {no:17,name:"VG.GAV X",scores:[1,1,1,1,3,1,1,1,5,1,1,1,1,4,1,3,2,1,2,2],total:34,rank:15},
+  {no:18,name:"VG.THV",scores:[1,2,2,1,4,1,1,1,1,2,2,1,3,2,2,1,0,3,2,1],total:33,rank:16},
+  {no:19,name:"CHEYENNE",scores:[1,1,1,1,1,0,1,2,3,2,2,1,2,1,1,1,1,2,8,1],total:33,rank:16},
+  {no:20,name:"VG.ICHAN",scores:[2,0,3,0,3,1,0,1,0,5,2,1,3,1,1,1,2,1,3,1],total:31,rank:17},
+  {no:21,name:"FRANCIS X",scores:[1,5,0,0,0,1,1,1,0,1,1,2,0,0,0,1,0,2,8,3],total:27,rank:18},
+  {no:22,name:"BFD",scores:[2,1,0,1,0,3,1,1,1,3,3,1,2,0,0,0,4,1,0,2],total:26,rank:19},
+  {no:23,name:"HYDRA. GINGA G",scores:[2,0,0,1,1,1,2,0,0,1,1,2,1,2,3,2,0,3,3,1],total:26,rank:19},
+  {no:24,name:"ZPC.KHRIZ",scores:[1,2,1,1,3,1,1,1,1,1,3,1,1,2,3,0,1,0,0,0],total:24,rank:20},
+  {no:25,name:"ZPC.THE ARCADION",scores:[0,0,4,1,0,0,0,2,1,3,1,1,1,3,0,1,3,1,2,0],total:24,rank:20},
+  {no:26,name:"MS.E",scores:[1,0,0,0,0,1,1,0,0,0,0,0,1,0,0,2,3,1,8,3],total:21,rank:21},
+  {no:27,name:"ZPC. KYLE EXTREME",scores:[0,0,0,0,1,1,2,1,1,1,1,1,1,1,2,0,1,0,3,3],total:20,rank:22},
+  {no:28,name:"DINOO",scores:[2,2,1,2,1,0,5,1,0,1,1,1,1,0,0,1,0,1,0,0],total:20,rank:22},
+  {no:29,name:"HYDRA. CANATA",scores:[1,1,1,3,1,1,2,0,0,3,1,1,0,0,2,0,1,0,2,0],total:20,rank:22},
+  {no:30,name:"HYDRA.IZZY",scores:[1,0,2,6,0,1,1,1,0,0,2,3,0,0,0,0,0,0,2,0],total:19,rank:23},
+  {no:31,name:"ZPC. VLADER X",scores:[2,0,2,1,0,1,0,0,0,0,1,1,0,0,0,3,0,0,8,0],total:19,rank:23},
+  {no:32,name:"MR. JAN",scores:[2,0,0,0,0,1,1,0,0,0,0,0,1,0,0,1,1,0,8,2],total:17,rank:24},
+  {no:34,name:"JUICEWA",scores:[1,1,1,1,0,0,3,1,0,0,0,1,1,1,0,2,0,1,2,0],total:16,rank:25},
+  {no:35,name:"VG. PEEKABOO",scores:[0,0,0,0,0,0,1,1,0,0,1,0,1,2,1,1,1,0,3,2],total:14,rank:26},
+  {no:36,name:"ZPC. ZONETWO",scores:[0,0,1,0,1,1,0,1,0,1,3,0,1,1,0,0,0,0,4,0],total:14,rank:26},
+  {no:37,name:"HYDRA.DZLAN",scores:[0,0,1,0,0,0,2,1,0,0,1,1,0,0,0,0,4,2,0,0],total:12,rank:27},
+  {no:39,name:"ALNIX X / XPress",scores:[2,1,0,1,0,0,1,1,0,0,1,1,1,0,0,1,0,0,2,0],total:12,rank:27},
+  {no:40,name:"MANG JOSE / xOTEP",scores:[0,1,3,0,1,0,1,1,0,0,0,1,0,0,0,0,1,3,0,0],total:12,rank:27},
+  {no:41,name:"JETHSU",scores:[1,3,3,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,2,1],total:12,rank:26},
+  {no:42,name:"HYDRA. VANZ RYUGA",scores:[1,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,8,0],total:11,rank:28},
+  {no:43,name:"ZPC.UMBRA.LUNABELLA",scores:[0,0,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],total:10,rank:29},
+  {no:44,name:"CHIMPOGOGO / I MISS HER",scores:[2,0,2,0,0,0,1,2,0,1,1,1,0,0,0,0,0,0,0,0],total:10,rank:29},
+  {no:45,name:"ZPC. MHIE",scores:[1,0,0,0,0,1,1,0,0,3,0,1,2,0,0,0,0,0,0,0],total:9,rank:30},
+  {no:46,name:"HSTLR. CHAPSILOG",scores:[8,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],total:9,rank:30},
+  {no:47,name:"ZPC. REM",scores:[0,0,1,2,0,0,0,0,0,0,0,3,1,1,1,0,0,0,0,0],total:9,rank:30},
+  {no:48,name:"HYDRA. BOLD",scores:[0,0,0,0,0,0,5,1,0,0,0,0,0,0,0,3,0,0,0,0],total:9,rank:30},
+  {no:49,name:"RV",scores:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,0],total:9,rank:30},
+  {no:50,name:"VG. KETT / SLEEPY",scores:[0,0,0,0,0,0,0,0,3,1,2,0,1,0,1,0,0,0,0,0],total:8,rank:31},
+  {no:51,name:"FRANCIS X JR",scores:[0,0,0,1,0,0,0,2,0,0,1,0,0,3,0,0,0,0,0,0],total:7,rank:32},
+  {no:52,name:"HYDRA.NICOMA",scores:[3,0,0,0,0,0,0,1,2,0,0,1,0,0,0,0,0,0,0,0],total:7,rank:32},
+  {no:53,name:"VG. KIRARA",scores:[0,0,0,0,0,0,0,0,3,1,0,2,0,1,0,0,0,0,0,0],total:7,rank:32},
+  {no:54,name:"PRIOHN",scores:[0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,3,0,0,0,0],total:5,rank:33},
+  {no:55,name:"VG. PRINCE",scores:[0,0,0,0,0,0,1,1,0,1,2,0,0,0,0,0,0,0,0,0],total:5,rank:33},
+  {no:56,name:"MAXWELL",scores:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0],total:5,rank:33},
+  {no:57,name:"VG.FROZEN",scores:[1,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],total:4,rank:34},
+  {no:58,name:"ZPC. YIYI",scores:[0,0,0,0,0,0,0,0,0,2,1,0,0,1,0,0,0,0,0,0],total:4,rank:34},
+  {no:59,name:"JUST IN 2.0",scores:[1,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0],total:4,rank:34},
+  {no:60,name:"KENDRIX",scores:[0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0],total:4,rank:34},
+];
+let eventLabels = ['W1','W2','W3','W4','W5','DAYO','W6','W7','VG ER','ZPC ER','VG ER','VANZ BD','VG BD','W9','VG ER','W10','VG ER','W11','W12','W13'];
+
+// Podium photos stored in localStorage
+let podiumPhotos = { 1: '', 2: '', 3: '' };
+
+// Challonge state
+let challongeApiKey = '', challongeUsername = '', selectedTournament = null, currentParticipants = [];
+let publishedTournaments = [];
+
+// ═══ POINT MAP ═══
+const POINT_MAP = {1:8,2:6,3:5,4:4};
+function getPointsForRank(rank) {
+  if (POINT_MAP[rank]) return POINT_MAP[rank];
+  if (rank <= 8) return 3;
+  if (rank <= 16) return 2;
+  return 1;
+}
+
+// ═══ TOAST ═══
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(()=>{ t.className='toast'; }, 3200);
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN AUTH
+// ═══════════════════════════════════════════════════════
+function openLoginModal() {
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('login-user').focus(), 100);
+}
+function closeLoginModal() { document.getElementById('login-modal').classList.remove('open'); }
+
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const match = ADMIN_USERS.find(a => a.username === u && a.password === p);
+  if (match) {
+    isAdmin = true;
+    closeLoginModal();
+    applyAdminUI();
+    showToast('Welcome, ' + u + '! Admin mode active.', 'success');
+  } else {
+    document.getElementById('login-error').textContent = 'Incorrect username or password.';
+    document.getElementById('login-pass').value = '';
+  }
+}
+
+function adminLogout() {
+  isAdmin = false;
+  document.getElementById('admin-bar').classList.remove('visible');
+  document.getElementById('nav-admin-badge').style.display = 'none';
+  document.getElementById('nav-login-hint').style.display = '';
+  document.body.classList.remove('admin-active');
+  // Switch challonge tab back to public view
+  document.getElementById('challonge-admin').style.display = 'none';
+  document.getElementById('challonge-public').style.display = 'block';
+  showToast('Logged out of admin.', '');
+}
+
+function applyAdminUI() {
+  document.getElementById('admin-bar').classList.add('visible');
+  document.getElementById('nav-admin-badge').style.display = '';
+  document.getElementById('nav-login-hint').style.display = 'none';
+  document.body.classList.add('admin-active');
+  // If currently on challonge tab, show admin panel
+  if (document.getElementById('tab-challonge').classList.contains('active')) {
+    document.getElementById('challonge-admin').style.display = 'block';
+    document.getElementById('challonge-public').style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  PODIUM PHOTO MANAGEMENT
+// ═══════════════════════════════════════════════════════
+function loadSavedPhotos() {
+  const saved = localStorage.getItem('rxs_podium_photos');
+  if (saved) { podiumPhotos = JSON.parse(saved); applyPodiumPhotos(); }
+}
+
+function applyPodiumPhotos() {
+  [1,2,3].forEach(n => {
+    const url = podiumPhotos[n];
+    const avatarId = n===1?'avatar-1st':n===2?'avatar-2nd':'avatar-3rd';
+    const el = document.getElementById(avatarId);
+    if (!el) return;
+    if (url) {
+      el.innerHTML = `<img src="${url}" alt="Player ${n}" onerror="this.parentElement.innerHTML='<div class=\\'silhouette\\'>🧍</div><div class=\\'edit-overlay\\'>📷</div>'" /><div class="edit-overlay">📷</div>`;
+    } else {
+      el.innerHTML = `<div class="silhouette">🧍</div><div class="edit-overlay">📷</div>`;
+    }
+  });
+}
+
+function adminEditPhoto(n) {
+  if (!isAdmin) return;
+  openPhotoModal();
+  setTimeout(()=> document.getElementById('photo-url-'+n).focus(), 200);
+}
+
+function openPhotoModal() {
+  if (!isAdmin) return;
+  [1,2,3].forEach(n => {
+    document.getElementById('photo-url-'+n).value = podiumPhotos[n] || '';
+    previewPhoto(n, podiumPhotos[n] || '');
+  });
+  document.getElementById('photo-modal').classList.add('open');
+}
+function closePhotoModal() { document.getElementById('photo-modal').classList.remove('open'); }
+
+function previewPhoto(n, url) {
+  const img = document.getElementById('prev-'+n);
+  const sil = document.getElementById('prev-'+n+'-sil');
+  if (url && url.startsWith('http')) {
+    img.src = url; img.style.display = 'block'; sil.style.display = 'none';
+    img.onerror = () => { img.style.display='none'; sil.style.display='flex'; };
+  } else {
+    img.style.display = 'none'; sil.style.display = 'flex';
+  }
+}
+
+function applyPhotos() {
+  [1,2,3].forEach(n => {
+    podiumPhotos[n] = document.getElementById('photo-url-'+n).value.trim();
+  });
+  localStorage.setItem('rxs_podium_photos', JSON.stringify(podiumPhotos));
+  applyPodiumPhotos();
+  closePhotoModal();
+  showToast('Podium photos updated!', 'success');
+}
+
+function clearPhotos() {
+  podiumPhotos = {1:'',2:'',3:''};
+  localStorage.removeItem('rxs_podium_photos');
+  applyPodiumPhotos();
+  [1,2,3].forEach(n => {
+    document.getElementById('photo-url-'+n).value = '';
+    previewPhoto(n, '');
+  });
+  showToast('Photos cleared.', '');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CHALLONGE — Auto via Netlify Function proxy
+// ═══════════════════════════════════════════════════════
+const NETLIFY_FN = '/api/challonge';
+
+// ── Safe fetch wrapper — reads body as text first so HTML error pages
+//    produce a readable message instead of "Unexpected token '<'" ──────────
+async function fetchChallonge(query) {
+  const resp = await fetch(`${NETLIFY_FN}${query}`);
+  const text = await resp.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (_) {
+    throw new Error(`HTTP ${resp.status} — Function returned non-JSON: ${text.slice(0, 120)}`);
+  }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+
+// ── Admin: load tournament list ──
+async function loadTournaments() {
+  document.getElementById('tournament-list-wrap').innerHTML = '<div class="loader"><div class="spinner"></div>Loading from Challonge…</div>';
+  document.getElementById('tournament-detail-wrap').innerHTML = '<div class="empty-state">Select a tournament to view details</div>';
+  document.getElementById('import-section').style.display = 'none';
+  try {
+    const data = await fetchChallonge('?action=list');
+    document.getElementById('challonge-status').textContent = '● Connected';
+    document.getElementById('challonge-status').className = 'challonge-status connected';
+    renderTournamentList(data);
+    showToast(`Loaded ${data.length} tournaments!`, 'success');
+  } catch(e) {
+    document.getElementById('challonge-status').textContent = '● Error';
+    document.getElementById('challonge-status').className = 'challonge-status error';
+    document.getElementById('tournament-list-wrap').innerHTML = `<div class="empty-state">Error: ${e.message}<br><br>Make sure CHALLONGE_API_KEY is set in Netlify Environment Variables and the site has been redeployed since the key was added.</div>`;
+  }
+}
+
+// ── Public view: auto-load tournaments on tab open ──
+async function loadPublicTournaments() {
+  document.getElementById('public-tournament-list').innerHTML = '<div class="loader"><div class="spinner"></div>Loading tournaments…</div>';
+  document.getElementById('public-bracket-view').style.display = 'none';
+  document.getElementById('public-tournament-list').style.display = 'block';
+  try {
+    const data = await fetchChallonge('?action=list');
+    renderPublicTournamentList(data);
+  } catch(e) {
+    document.getElementById('public-tournament-list').innerHTML = `<div class="challonge-locked"><div class="lock-icon">⚠️</div><div class="lock-title">Could not load</div><div class="lock-sub">${e.message}</div></div>`;
+  }
+}
+
+function renderPublicTournamentList(data) {
+  if (!data || !data.length) {
+    document.getElementById('public-tournament-list').innerHTML = '<div class="challonge-locked"><div class="lock-icon">🏆</div><div class="lock-title">No Tournaments Yet</div><div class="lock-sub">Tournaments from the lienathan Challonge account will appear here automatically.</div></div>';
+    return;
+  }
+  // Sort: underway first, then complete, then pending
+  const order = {underway:0, complete:1, pending:2};
+  const sorted = [...data].sort((a,b) => (order[a.tournament.state]||2)-(order[b.tournament.state]||2));
+  const html = sorted.map(t => {
+    const tour = t.tournament;
+    const s = {complete:'complete',underway:'underway',pending:'pending'}[tour.state]||'pending';
+    const sl = {complete:'✅ Complete',underway:'🔴 LIVE',pending:'⏳ Upcoming'}[s];
+    const date = tour.started_at ? new Date(tour.started_at).toLocaleDateString() : 'Not started yet';
+    return `<div class="tournament-item" onclick="openPublicBracket('${tour.id}','${tour.url}','${tour.name.replace(/'/g,"\\'")}','${s}')">
+      <div class="t-icon">🏆</div>
+      <div class="t-info">
+        <div class="t-name">${tour.name}</div>
+        <div class="t-meta">${tour.tournament_type.toUpperCase()} · ${tour.participants_count} players · ${date}</div>
+      </div>
+      <div class="t-status ${s}">${sl}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('public-tournament-list').innerHTML = `<div class="tournament-list">${html}</div>`;
+}
+
+async function openPublicBracket(id, url, name, state) {
+  document.getElementById('public-tournament-list').style.display = 'none';
+  document.getElementById('public-bracket-view').style.display = 'block';
+  document.getElementById('pub-bracket-title').textContent = name;
+  const statusEl = document.getElementById('pub-bracket-status');
+  statusEl.textContent = state === 'underway' ? '🔴 LIVE' : state === 'complete' ? '✅ Complete' : '⏳ Upcoming';
+  statusEl.className = 'ltc-status ' + (state === 'underway' ? 'live' : 'done');
+
+  // Embed the Challonge bracket iframe
+  document.getElementById('pub-bracket-embed').innerHTML = `
+    <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border)">
+      <iframe src="https://challonge.com/lienathan/${url}/module?theme=1&multiplier=1.0&match_width_multiplier=1.0&show_final_results=1&show_standings=1"
+        width="100%" height="500" frameborder="0" scrolling="auto" allowtransparency="true"
+        style="background:transparent;display:block"></iframe>
+    </div>`;
+
+  // Also load participants
+  document.getElementById('pub-participants-wrap').innerHTML = '<div class="loader"><div class="spinner"></div>Loading standings…</div>';
+  try {
+    const data = await fetchChallonge(`?action=participants&tournament_id=${encodeURIComponent(url)}`);
+    const participants = data.map(p=>p.participant).sort((a,b)=>(a.final_rank||999)-(b.final_rank||999));
+    if (!participants.length) { document.getElementById('pub-participants-wrap').innerHTML = ''; return; }
+    const rows = participants.map((p,i) => {
+      const rank = p.final_rank||(i+1);
+      const pts = getPointsForRank(rank);
+      const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`#${rank}`;
+      return `<div class="bracket-participant">
+        <div class="bp-rank">${medal}</div>
+        <div class="bp-name">${p.display_name||p.name}</div>
+        <div class="bp-pts">+${pts} pts</div>
+      </div>`;
+    }).join('');
+    document.getElementById('pub-participants-wrap').innerHTML = `
+      <div class="bracket-preview" style="margin-top:16px">
+        <div class="bracket-title">Final Standings — ${participants.length} Participants</div>
+        ${rows}
+      </div>`;
+  } catch(e) {
+    document.getElementById('pub-participants-wrap').innerHTML = '';
+  }
+}
+
+function backToTournamentList() {
+  document.getElementById('public-bracket-view').style.display = 'none';
+  document.getElementById('public-tournament-list').style.display = 'block';
+}
+
+function renderTournamentList(data) {
+  if (!data || !data.length) { document.getElementById('tournament-list-wrap').innerHTML = '<div class="empty-state">No tournaments found.</div>'; return; }
+  const html = data.map(t => {
+    const tour = t.tournament;
+    const s = {complete:'complete',underway:'underway',pending:'pending'}[tour.state]||'pending';
+    const sl = {complete:'Complete',underway:'Live',pending:'Pending'}[s];
+    const date = tour.started_at ? new Date(tour.started_at).toLocaleDateString() : 'Not started';
+    return `<div class="tournament-item" onclick="selectTournament('${tour.id}','${tour.url}',this)">
+      <div class="t-icon">🏆</div>
+      <div class="t-info"><div class="t-name">${tour.name}</div><div class="t-meta">${tour.tournament_type.toUpperCase()} · ${tour.participants_count} players · ${date}</div></div>
+      <div class="t-status ${s}">${sl}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('tournament-list-wrap').innerHTML = '<div class="tournament-list">'+html+'</div>';
+}
+
+async function selectTournament(id, url, el) {
+  document.querySelectorAll('.tournament-item').forEach(i=>i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTournament = {id, url};
+  document.getElementById('tournament-detail-wrap').innerHTML = '<div class="loader"><div class="spinner"></div>Loading participants…</div>';
+  try {
+    const data = await fetchChallonge(`?action=participants&tournament_id=${encodeURIComponent(url)}`);
+    currentParticipants = data.map(p=>p.participant).sort((a,b)=>(a.final_rank||999)-(b.final_rank||999));
+    renderTournamentDetail();
+    document.getElementById('import-section').style.display = 'block';
+  } catch(e) {
+    document.getElementById('tournament-detail-wrap').innerHTML = `<div class="empty-state">Could not load: ${e.message}</div>`;
+  }
+}
+
+function renderTournamentDetail() {
+  const html = `<div class="bracket-preview">
+    <div class="bracket-title">Final Standings — ${currentParticipants.length} Participants</div>
+    ${currentParticipants.slice(0,20).map((p,i)=>{
+      const rank = p.final_rank||(i+1);
+      const pts = getPointsForRank(rank);
+      return `<div class="bracket-participant"><div class="bp-rank">#${rank}</div><div class="bp-name">${p.display_name||p.name}</div><div class="bp-pts">+${pts}pts</div></div>`;
+    }).join('')}
+    ${currentParticipants.length>20?`<div style="text-align:center;padding:8px;color:var(--muted);font-size:11px">+${currentParticipants.length-20} more</div>`:''}
+  </div>`;
+  document.getElementById('tournament-detail-wrap').innerHTML = html;
+}
+
+// ─── Demo mode ───
+function loadDemoMode() {
+  document.getElementById('challonge-status').textContent = '● Demo Mode';
+  document.getElementById('challonge-status').className = 'challonge-status connected';
+  document.getElementById('btn-load-tournaments').disabled = false;
+  const demo = [
+    {tournament:{id:'d1',url:'d1',name:'RXS Week 14',tournament_type:'single elimination',participants_count:16,state:'complete',started_at:'2025-04-10T08:00:00Z'}},
+    {tournament:{id:'d2',url:'d2',name:'RXS Week 15',tournament_type:'double elimination',participants_count:12,state:'complete',started_at:'2025-04-17T08:00:00Z'}},
+    {tournament:{id:'d3',url:'d3',name:'VG Easter Royale',tournament_type:'swiss',participants_count:20,state:'underway',started_at:'2025-04-20T08:00:00Z'}},
+    {tournament:{id:'d4',url:'d4',name:'HYDRA Invitational',tournament_type:'round robin',participants_count:8,state:'pending',started_at:null}},
+  ];
+  renderTournamentList(demo);
+  document.querySelectorAll('.tournament-item').forEach((el,i)=>{ el.onclick = ()=>selectDemoTournament(i,el); });
+  showToast('Demo Mode — try all features!', 'success');
+}
+function selectDemoTournament(idx, el) {
+  document.querySelectorAll('.tournament-item').forEach(i=>i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTournament = {id:'demo',url:'demo'};
+  const names = ['VG.xUYAPOS','ZPC.JUANDER','HYDRA.REOKI','NONOY X / NOY MAHAW!','VG.TAKAHASHI','LIENATHAN','BOSS X','VG.xBOSSRY','CHEYANNE','KING JUDE','VG.ICHAN','DEAUX','BFD','HYDRA.KAYDEN','ZPC.KHRIZ','FRANCIS X'];
+  currentParticipants = names.map((name,i)=>({display_name:name,name,final_rank:i+1}));
+  renderTournamentDetail();
+  document.getElementById('import-section').style.display = 'block';
+}
+
+// ─── Import ───
+function importTournamentResults() {
+  const label = document.getElementById('event-label-input').value.trim() || `Event ${eventLabels.length+1}`;
+  if (!currentParticipants.length) { showToast('No tournament selected.', 'error'); return; }
+  const newScores = {};
+  currentParticipants.forEach((p,i)=>{
+    const rank = p.final_rank||(i+1);
+    const name = (p.display_name||p.name||'').trim();
+    newScores[name.toLowerCase()] = {pts:getPointsForRank(rank), rank, originalName:name};
+  });
+  let matched=[], unmatched=[];
+  Object.entries(newScores).forEach(([key,val])=>{
+    const found = players.find(p=>p.name.toLowerCase()===key||p.name.toLowerCase().includes(key));
+    if (found) matched.push({player:found,pts:val.pts,rank:val.rank});
+    else unmatched.push({name:val.originalName,pts:val.pts,rank:val.rank});
+  });
+  const encoded = encodeURIComponent(JSON.stringify(newScores));
+  const preview = `<div class="import-preview">
+    <div class="import-title">✅ Preview — ${matched.length} matched, ${unmatched.length} new</div>
+    ${matched.map(m=>`<div class="import-row"><div class="ir-rank">#${m.rank}</div><div class="ir-name">${m.player.name}</div><div class="ir-pts existing">+${m.pts}</div></div>`).join('')}
+    ${unmatched.length?`<div style="margin-top:8px;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:6px 0">New bladers</div>${unmatched.map(u=>`<div class="import-row"><div class="ir-rank">#${u.rank}</div><div class="ir-name">${u.name}<span class="inline-tag">NEW</span></div><div class="ir-pts new">+${u.pts}</div></div>`).join('')}`:''}
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn primary" onclick="confirmImport('${label}',decodeURIComponent('${encoded}'))">✅ Confirm Import</button>
+      <button class="btn" onclick="document.getElementById('import-preview-wrap').innerHTML=''">Cancel</button>
+    </div>
+  </div>`;
+  document.getElementById('import-preview-wrap').innerHTML = preview;
+}
+
+function confirmImport(label, newScoresStr) {
+  const newScores = JSON.parse(newScoresStr);
+  eventLabels.push(label);
+  players.forEach(p=>{
+    const key = p.name.toLowerCase();
+    const match = Object.entries(newScores).find(([k])=>key===k||key.includes(k));
+    const pts = match?match[1].pts:0;
+    p.scores.push(pts); p.total+=pts;
+  });
+  Object.entries(newScores).forEach(([key,val])=>{
+    const found = players.find(p=>p.name.toLowerCase()===key||p.name.toLowerCase().includes(key));
+    if (!found) {
+      const sc = new Array(eventLabels.length).fill(0);
+      sc[sc.length-1] = val.pts;
+      players.push({no:players.length+1,name:val.originalName,scores:sc,total:val.pts,rank:players.length+1});
+    }
+  });
+  players.sort((a,b)=>b.total-a.total);
+  let rank=1;
+  players.forEach((p,i)=>{ if(i>0&&p.total<players[i-1].total) rank=i+1; p.rank=rank; });
+  renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
+  document.getElementById('import-preview-wrap').innerHTML = `<div class="api-note">✅ <strong>${label}</strong> imported! Leaderboard updated.</div>`;
+  showToast(`${label} imported!`, 'success');
+}
+
+// ═══════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════════════════
+function showTab(tab, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+  // Challonge tab: show correct view and auto-load
+  if (tab === 'challonge') {
+    if (isAdmin) {
+      document.getElementById('challonge-admin').style.display = 'block';
+      document.getElementById('challonge-public').style.display = 'none';
+    } else {
+      document.getElementById('challonge-admin').style.display = 'none';
+      document.getElementById('challonge-public').style.display = 'block';
+      // Auto-load tournaments for public view
+      loadPublicTournaments();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  LEADERBOARD RENDER
+// ═══════════════════════════════════════════════════════
+let currentFilter='all', currentSearch='';
+function getTeam(name) {
+  if (name.startsWith('VG')) return 'VG';
+  if (name.startsWith('ZPC')) return 'ZPC';
+  if (name.startsWith('HYDRA')) return 'HYDRA';
+  if (name.startsWith('HSTLR')) return 'HSTLR';
+  return '';
+}
+function getTagHtml(name) {
+  const t=getTeam(name); if(!t) return '';
+  const cls={VG:'tag-vg',ZPC:'tag-zpc',HYDRA:'tag-hydra',HSTLR:'tag-hstlr'}[t];
+  return `<span class="tag ${cls}">${t}</span>`;
+}
+function getRankBadge(rank) {
+  if(rank===1) return `<span class="rank-badge rb-1">Season King</span>`;
+  if(rank===2) return `<span class="rank-badge rb-2">2nd</span>`;
+  if(rank===3) return `<span class="rank-badge rb-3">3rd</span>`;
+  if(rank<=8) return `<span class="rank-badge rb-n">Top 8</span>`;
+  if(rank<=16) return `<span class="rank-badge rb-n">Top 16</span>`;
+  return `<span class="rank-badge rb-n">Rank ${rank}</span>`;
+}
+function getRankDisplay(rank,i) {
+  if(i===0) return `<span class="rank-num gold">🥇</span>`;
+  if(i===1) return `<span class="rank-num silver">🥈</span>`;
+  if(i===2) return `<span class="rank-num bronze">🥉</span>`;
+  return `<span class="rank-num">#${i+1}</span>`;
+}
+function renderLeaderboard() {
+  const body=document.getElementById('lb-body');
+  let filtered=players.filter(p=>{
+    const ms=p.name.toLowerCase().includes(currentSearch.toLowerCase());
+    const mt=currentFilter==='all'||getTeam(p.name)===currentFilter;
+    return ms&&mt;
+  });
+  body.innerHTML=filtered.map((p,i)=>{
+    const isTop3=i<3&&currentFilter==='all'&&currentSearch==='';
+    const origIdx=players.indexOf(p);
+    return `<tr><td>${getRankDisplay(p.rank,origIdx)}</td><td><span class="blader-name${isTop3?' top3':''}">${p.name}</span>${getTagHtml(p.name)}</td><td>${getTeam(p.name)||'<span style="color:var(--muted2)">—</span>'}</td><td><span class="score${origIdx===0?' champ':''}" style="display:block;text-align:right">${p.total}</span></td><td style="text-align:right">${getRankBadge(p.rank)}</td></tr>`;
+  }).join('');
+  document.getElementById('page-info').textContent=`Showing ${filtered.length} of ${players.length} bladers`;
+}
+function filterTable(val){currentSearch=val;renderLeaderboard();}
+function filterTag(tag,btn){
+  currentFilter=tag;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderLeaderboard();
+}
+
+// ═══════════════════════════════════════════════════════
+//  WEEKLY RENDER
+// ═══════════════════════════════════════════════════════
+function renderWeekly() {
+  const hr=document.getElementById('weekly-header-row');
+  hr.innerHTML='<th>Blader</th>'+eventLabels.map(l=>`<th style="text-align:center">${l}</th>`).join('')+'<th class="right">Total</th>';
+  const body=document.getElementById('weekly-body');
+  const top20=players.slice(0,20);
+  body.innerHTML=top20.map((p,i)=>{
+    const maxScore=Math.max(...p.scores);
+    const cells=p.scores.map(s=>{
+      if(s===0) return `<td style="text-align:center;color:var(--muted2)">—</td>`;
+      const cls=s===maxScore&&s>=8?' class="ws high"':s>=6?' class="ws win"':' class="ws"';
+      return `<td style="text-align:center"><span${cls}>${s}</span></td>`;
+    }).join('');
+    const rd=i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`;
+    return `<tr><td><span style="color:var(--muted);font-size:12px;margin-right:8px">${rd}</span><span class="blader-name">${p.name}</span>${getTagHtml(p.name)}</td>${cells}<td><span class="score${i===0?' champ':''}" style="display:block;text-align:right">${p.total}</span></td></tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  TEAM TOTALS & HERO STATS
+// ═══════════════════════════════════════════════════════
+function renderTeamTotals() {
+  const teams={VG:0,ZPC:0,HYDRA:0,HSTLR:0,Independent:0};
+  players.forEach(p=>{ const t=getTeam(p.name)||'Independent'; if(teams[t]!==undefined) teams[t]+=p.total; else teams.Independent+=p.total; });
+  const colors={VG:'#4a9fd4',ZPC:'#9977cc',HYDRA:'#4aaa6a',HSTLR:'#d47a3a',Independent:'#888'};
+  const icons={VG:'⚡',ZPC:'💫',HYDRA:'🐉',HSTLR:'🎧',Independent:'⚔️'};
+  document.getElementById('team-totals').innerHTML=Object.entries(teams).sort((a,b)=>b[1]-a[1]).map(([team,pts])=>`<div class="point-card" style="border-color:${colors[team]}22"><span class="pts" style="color:${colors[team]}">${icons[team]} ${pts}</span><span class="lbl">${team}</span></div>`).join('');
+}
+function updateHeroStats() {
+  document.getElementById('stat-bladers').textContent=players.length;
+  document.getElementById('stat-events').textContent=eventLabels.length;
+  document.getElementById('topScore').textContent=players[0]?.total||0;
+  if(players[0]) document.getElementById('p1-pts').textContent=players[0].total;
+  if(players[1]) document.getElementById('p2-pts').textContent=players[1].total;
+  if(players[2]) document.getElementById('p3-pts').textContent=players[2].total;
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+renderLeaderboard();
+renderWeekly();
+renderTeamTotals();
+updateHeroStats();
+loadSavedPhotos();
+</script>
+</body>
+</html>
