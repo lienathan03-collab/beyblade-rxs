@@ -1020,7 +1020,7 @@ let cloudSaveTimeout = null;
 // ── localStorage fallback ──
 const LS_KEY = 'beyblade_rxs_data';
 function localSave() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify({ photos: podiumPhotos, heroBgUrl: heroBgUrl||'', players, eventLabels, importedIds: importedTournamentIds, teamConfig, bladerStats, manualAchs: manualAchievements })); } catch(e) {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ photos: podiumPhotos, heroBgUrl: heroBgUrl||'', players, eventLabels, importedIds: importedTournamentIds, teamConfig, bladerStats, manualAchs: manualAchievements, autoAchOv: autoAchOverrides })); } catch(e) {}
 }
 function localLoad() {
   try {
@@ -1035,6 +1035,7 @@ function localLoad() {
     if (d.teamConfig)                  { teamConfig = Object.assign(teamConfig, d.teamConfig); }
     if (d.bladerStats)                 { bladerStats = Object.assign(bladerStats, d.bladerStats); }
     if (d.manualAchs)                  { manualAchievements = d.manualAchs; }
+    if (d.autoAchOv)                   { autoAchOverrides = d.autoAchOv; }
     renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
     return true;
   } catch(e) { return false; }
@@ -1061,6 +1062,7 @@ async function cloudLoad() {
     if (data.teamConfig)               { teamConfig = Object.assign(teamConfig, data.teamConfig); }
     if (data.bladerStats)              { bladerStats = Object.assign(bladerStats, data.bladerStats); }
     if (data.manualAchs)               { manualAchievements = data.manualAchs; }
+    if (data.autoAchOv)                { autoAchOverrides = data.autoAchOv; }
     renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
     localSave();
   } catch(e) { console.error('[JSONBin] Load error:', e); }
@@ -1082,7 +1084,8 @@ async function cloudSave() {
           importedIds: importedTournamentIds,
           teamConfig: teamConfig,
           bladerStats: bladerStats,
-          manualAchs: manualAchievements
+          manualAchs: manualAchievements,
+          autoAchOv: autoAchOverrides
         })
       });
       if (!res.ok) {
@@ -1985,15 +1988,30 @@ function renderAchievements() {
       achs.push({ icon:'📈', name:'Biggest Climber', desc:'Most improved in second half of season', holder: comebacks[0].p.name });
   }
 
-  // ── Merge manual achievements (show at top) ──
-  const allAchs = [...manualAchievements.map((a,i) => ({...a, _manual: true, _idx: i})), ...achs.map(a => ({...a, _manual: false}))];
+  // ── Apply auto overrides (hidden/edited auto achievements) ──
+  // autoAchOverrides: { [autoName]: { hidden: true } | { ...edited fields } }
+  const visibleAutoAchs = achs
+    .filter(a => !autoAchOverrides[a.name]?.hidden)
+    .map(a => {
+      const ov = autoAchOverrides[a.name];
+      return ov ? { ...a, ...ov, _auto: true, _autoKey: a.name } : { ...a, _auto: true, _autoKey: a.name };
+    });
+
+  // Manual achievements shown at top
+  const allAchs = [
+    ...manualAchievements.map((a,i) => ({...a, _manual: true, _idx: i})),
+    ...visibleAutoAchs
+  ];
 
   // ── Render ──
   grid.innerHTML = allAchs.map(a => {
-    const photoHtml = a.photo ? `<img src="${a.photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border2)" onerror="this.style.display='none'" />` : `<div class="ach-icon">${a.icon||'🏆'}</div>`;
+    const photoHtml = a.photo
+      ? `<img src="${a.photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border2)" onerror="this.style.display='none'" />`
+      : `<div class="ach-icon">${a.icon||'🏆'}</div>`;
+    const safeKey = JSON.stringify(a._manual ? null : (a._autoKey || '')).replace(/"/g, '&quot;');
     const editBtn = a._manual
       ? `<button class="ach-edit-btn" onclick="editAch(${a._idx})">✏️</button>`
-      : `<button class="ach-edit-btn" onclick="editAutoAch(this,'${(a.icon||'').replace(/'/g,'\'')}','${(a.name||'').replace(/'/g,'\'')}','${(a.desc||'').replace(/'/g,'\'')}','${(a.holder||'').replace(/'/g,'\'')}')">✏️</button>`;
+      : `<button class="ach-edit-btn" onclick="editAutoAch('${(a._autoKey||'').replace(/'/g,"\'")}')">✏️</button>`;
     return `<div class="ach-card">
       ${editBtn}
       ${photoHtml}
@@ -2006,11 +2024,14 @@ function renderAchievements() {
   }).join('');
 }
 
+// autoAchOverrides persisted in cloud: { autoName: { hidden, icon, name, desc, holder, photo } }
+let autoAchOverrides = {};
+
 function openAchModal(idx) {
   const isEdit = idx !== undefined;
   const a = isEdit ? manualAchievements[idx] : {icon:'🏆', name:'', desc:'', holder:'', photo:''};
   document.getElementById('ach-modal-title').textContent = isEdit ? '✏️ Edit Achievement' : '➕ Add Achievement';
-  document.getElementById('ach-modal-idx').value = isEdit ? idx : '';
+  document.getElementById('ach-modal-idx').value = isEdit ? ('manual:' + idx) : '';
   document.getElementById('ach-modal-icon').value = a.icon || '🏆';
   document.getElementById('ach-modal-name').value = a.name || '';
   document.getElementById('ach-modal-desc').value = a.desc || '';
@@ -2021,8 +2042,34 @@ function openAchModal(idx) {
 }
 function editAch(idx) { if (isAdmin) openAchModal(idx); }
 function closeAchModal() { document.getElementById('ach-modal').classList.remove('open'); }
+
+function editAutoAch(autoKey) {
+  if (!isAdmin) return;
+  const ov = autoAchOverrides[autoKey] || {};
+  // Get current rendered card values as fallback (find the card by its name text)
+  const cards = document.querySelectorAll('#ach-grid .ach-card');
+  let cardName = autoKey, cardDesc = '', cardHolder = '', cardIcon = '🏆';
+  cards.forEach(card => {
+    if (card.querySelector('.name')?.textContent === autoKey) {
+      cardDesc   = card.querySelector('.desc')?.textContent || '';
+      cardHolder = card.querySelector('.holder')?.textContent || '';
+      const iconEl = card.querySelector('.ach-icon');
+      if (iconEl) cardIcon = iconEl.textContent;
+    }
+  });
+  document.getElementById('ach-modal-title').textContent = '✏️ Edit Achievement';
+  document.getElementById('ach-modal-idx').value = 'auto:' + autoKey;
+  document.getElementById('ach-modal-icon').value  = ov.icon   || cardIcon;
+  document.getElementById('ach-modal-name').value  = ov.name   || cardName;
+  document.getElementById('ach-modal-desc').value  = ov.desc   || cardDesc;
+  document.getElementById('ach-modal-holder').value= ov.holder || cardHolder;
+  document.getElementById('ach-modal-photo').value = ov.photo  || '';
+  document.getElementById('ach-modal-delete').style.display = 'block';
+  document.getElementById('ach-modal').classList.add('open');
+}
+
 function saveAchModal() {
-  const idx = document.getElementById('ach-modal-idx').value;
+  const idxRaw = document.getElementById('ach-modal-idx').value;
   const a = {
     icon: document.getElementById('ach-modal-icon').value.trim() || '🏆',
     name: document.getElementById('ach-modal-name').value.trim(),
@@ -2031,35 +2078,40 @@ function saveAchModal() {
     photo: document.getElementById('ach-modal-photo').value.trim()
   };
   if (!a.name) { showToast('Name is required', 'error'); return; }
-  if (idx === '') { manualAchievements.push(a); }
-  else { manualAchievements[parseInt(idx)] = a; }
+
+  if (idxRaw === '') {
+    // New manual achievement
+    manualAchievements.push(a);
+    showToast('Achievement added!', 'success');
+  } else if (idxRaw.startsWith('manual:')) {
+    // Edit existing manual achievement
+    const idx = parseInt(idxRaw.replace('manual:', ''));
+    manualAchievements[idx] = a;
+    showToast('Achievement updated!', 'success');
+  } else if (idxRaw.startsWith('auto:')) {
+    // Override auto achievement
+    const autoKey = idxRaw.replace('auto:', '');
+    autoAchOverrides[autoKey] = { ...a, hidden: false };
+    showToast('Achievement updated!', 'success');
+  }
   cloudSave();
   renderAchievements();
   closeAchModal();
-  showToast(idx === '' ? 'Achievement added!' : 'Achievement updated!', 'success');
 }
+
 function deleteAchModal() {
-  const idx = parseInt(document.getElementById('ach-modal-idx').value);
-  if (isNaN(idx)) return;
-  manualAchievements.splice(idx, 1);
+  const idxRaw = document.getElementById('ach-modal-idx').value;
+  if (idxRaw.startsWith('manual:')) {
+    const idx = parseInt(idxRaw.replace('manual:', ''));
+    if (!isNaN(idx)) manualAchievements.splice(idx, 1);
+  } else if (idxRaw.startsWith('auto:')) {
+    const autoKey = idxRaw.replace('auto:', '');
+    autoAchOverrides[autoKey] = { hidden: true };
+  }
   cloudSave();
   renderAchievements();
   closeAchModal();
   showToast('Achievement removed.', '');
-}
-// Allow editing auto-generated achievements by converting them to manual ones
-function editAutoAch(btn, icon, name, desc, holder) {
-  if (!isAdmin) return;
-  // Find this auto achievement in the rendered grid and convert to manual
-  document.getElementById('ach-modal-title').textContent = '✏️ Edit Achievement';
-  document.getElementById('ach-modal-idx').value = '';
-  document.getElementById('ach-modal-icon').value = icon;
-  document.getElementById('ach-modal-name').value = name;
-  document.getElementById('ach-modal-desc').value = desc;
-  document.getElementById('ach-modal-holder').value = holder;
-  document.getElementById('ach-modal-photo').value = '';
-  document.getElementById('ach-modal-delete').style.display = 'none';
-  document.getElementById('ach-modal').classList.add('open');
 }
 
 
