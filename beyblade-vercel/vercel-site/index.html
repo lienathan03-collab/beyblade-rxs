@@ -191,10 +191,7 @@
   .blader-name { font-weight: 600; font-size: 14px; color: var(--text); }
   .blader-name.top3 { color: var(--accent); }
   .tag { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
-  .tag-vg { background: #0d1a2e; color: #4a9fd4; border: 0.5px solid #1a3a5a; }
-  .tag-zpc { background: #1a0d2e; color: #9977cc; border: 0.5px solid #3a1a5a; }
-  .tag-hydra { background: #0d2e1a; color: #4aaa6a; border: 0.5px solid #1a5a2a; }
-  .tag-hstlr { background: #2e1a0d; color: #d47a3a; border: 0.5px solid #5a2a1a; }
+  /* tag colors now driven by teamConfig at runtime */
   .score { font-family: 'Share Tech Mono', monospace; font-size: 15px; text-align: right; color: var(--accent); }
   .score.champ { color: var(--gold2); }
   .ws { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); background: var(--surface2); border-radius: 3px; padding: 1px 5px; min-width: 22px; text-align: center; }
@@ -1467,9 +1464,15 @@ function getTeam(name) {
   return '';
 }
 function getTagHtml(name) {
-  const t=getTeam(name); if(!t) return '';
-  const cls={VG:'tag-vg',ZPC:'tag-zpc',HYDRA:'tag-hydra',HSTLR:'tag-hstlr'}[t];
-  return `<span class="tag ${cls}">${t}</span>`;
+  const t = getTeam(name); if (!t) return '';
+  const cfg = teamConfig[t];
+  const color = cfg ? cfg.color : '#888888';
+  const label = cfg ? cfg.name : t;
+  const hex = color.replace('#','');
+  const r=parseInt(hex.slice(0,2),16)||136, g=parseInt(hex.slice(2,4),16)||136, b=parseInt(hex.slice(4,6),16)||136;
+  const bg = `rgba(${r},${g},${b},0.12)`;
+  const border = `rgba(${r},${g},${b},0.35)`;
+  return `<span class="tag" style="color:${color};background:${bg};border:0.5px solid ${border}">${label}</span>`;
 }
 function getRankBadge(rank) {
   if(rank===1) return `<span class="rank-badge rb-1">Season King</span>`;
