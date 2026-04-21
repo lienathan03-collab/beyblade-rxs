@@ -1610,19 +1610,15 @@ async function confirmImport(labelEnc, resultsEnc, tournamentId) {
           matchPtCounts[loserName]  = (matchPtCounts[loserName]  || 0) + loserPts;
         }
       });
-      Object.entries(winCounts).forEach(([name, w]) => {
+      // Collect all unique player names across both wins and losses
+      const allNames = new Set([...Object.keys(winCounts), ...Object.keys(lossCounts)]);
+      allNames.forEach(name => {
         const st = ensureBladerStats(name);
+        const w = winCounts[name] || 0;
+        const l = lossCounts[name] || 0;
         st.wins          = (st.wins || 0) + w;
-        st.losses        = (st.losses || 0) + (lossCounts[name] || 0);
-        st.matchesPlayed = (st.matchesPlayed || 0) + w + (lossCounts[name] || 0);
-      });
-      // Also handle players who only have losses (no wins)
-      Object.entries(lossCounts).forEach(([name, l]) => {
-        if (!winCounts[name]) {
-          const st = ensureBladerStats(name);
-          st.losses        = (st.losses || 0) + l;
-          st.matchesPlayed = (st.matchesPlayed || 0) + l;
-        }
+        st.losses        = (st.losses || 0) + l;
+        st.matchesPlayed = (st.matchesPlayed || 0) + w + l;
       });
       Object.entries(matchPtCounts).forEach(([name, pts]) => {
         const st = ensureBladerStats(name);
