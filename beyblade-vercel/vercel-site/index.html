@@ -1124,9 +1124,13 @@ function applyPodiumPhotos() {
     const bgEl = document.getElementById(bgId);
     const noPhotoEl = document.querySelector('#'+cardId+' .podium-no-photo');
     if (!bgEl) return;
-    const imgUrl = url || DEFAULT_CARD_BG;
-    bgEl.innerHTML = '<img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentElement.innerHTML=\'\';" />';
-    if (noPhotoEl) noPhotoEl.style.display = 'none';
+    if (url) {
+      bgEl.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentElement.innerHTML=\'\';" />';
+      if (noPhotoEl) noPhotoEl.style.display = 'none';
+    } else {
+      bgEl.innerHTML = '';
+      if (noPhotoEl) noPhotoEl.style.display = '';
+    }
   });
 }
 
@@ -2438,7 +2442,7 @@ function saveBladerProfile() {
   document.getElementById('pe-losses-input').value   = '';
   document.getElementById('pe-matchpts-input').value = '';
   cloudSave();
-  renderLeaderboard(); renderWeekly(); updateHeroStats(); renderAchievements();
+  renderLeaderboard(); renderWeekly(); updateHeroStats(); renderAchievements(); applyPodiumPhotos();
   openBladerProfile(name);
   showToast(`Saved! +${addSpin} spin, +${addBurst} burst, +${addExtreme} extreme`, 'success');
 }
