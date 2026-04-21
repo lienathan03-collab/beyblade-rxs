@@ -221,6 +221,33 @@
   .point-card .pts { font-family: 'Share Tech Mono', monospace; font-size: 20px; color: var(--gold); }
   .point-card .lbl { font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 
+  /* TEAM CARDS */
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 32px; }
+  .team-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 12px;
+    position: relative; transition: border-color .15s;
+  }
+  .team-card-logo-wrap {
+    width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    cursor: pointer; transition: opacity .15s;
+  }
+  .team-card-logo-wrap:hover { opacity: 0.8; }
+  .team-card-logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .team-card-info { flex: 1; min-width: 0; }
+  .team-card-pts { font-family: 'Share Tech Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1; }
+  .team-card-name { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+  .team-card-edit-btn {
+    position: absolute; top: 6px; right: 8px;
+    background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 5px; padding: 2px 7px; font-size: 11px; cursor: pointer;
+    color: var(--muted); display: none;
+  }
+  .admin-active .team-card:hover .team-card-edit-btn { display: block; }
+  .admin-active .team-card:hover { border-color: var(--gold); }
+
   /* ── MODAL OVERLAY ── */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.85);
@@ -648,7 +675,7 @@
     <div class="point-card"><span class="pts">2</span><span class="lbl">⚔️ Swiss Slayer</span></div>
   </div>
   <div class="section-header" style="margin-top:20px"><span class="section-title">Team Totals</span><div class="section-line"></div></div>
-  <div class="points-grid" id="team-totals"></div>
+  <div class="team-grid" id="team-totals"></div>
 </div>
 
 <footer>Beyblade RXS · Roxas City Community · Season 1</footer>
@@ -862,7 +889,7 @@ let cloudSaveTimeout = null;
 // ── localStorage fallback ──
 const LS_KEY = 'beyblade_rxs_data';
 function localSave() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify({ photos: podiumPhotos, heroBgUrl: heroBgUrl||'', players, eventLabels, importedIds: importedTournamentIds })); } catch(e) {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ photos: podiumPhotos, heroBgUrl: heroBgUrl||'', players, eventLabels, importedIds: importedTournamentIds, teamConfig })); } catch(e) {}
 }
 function localLoad() {
   try {
@@ -874,6 +901,7 @@ function localLoad() {
     if (d.players)                   { players = d.players; }
     if (d.eventLabels)               { eventLabels = d.eventLabels; }
     if (d.importedIds)               { importedTournamentIds = d.importedIds; }
+    if (d.teamConfig)                  { teamConfig = Object.assign(teamConfig, d.teamConfig); }
     renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
     return true;
   } catch(e) { return false; }
@@ -897,6 +925,7 @@ async function cloudLoad() {
     if (data.players)                 { players = data.players; }
     if (data.eventLabels)             { eventLabels = data.eventLabels; }
     if (data.importedIds)             { importedTournamentIds = data.importedIds; }
+    if (data.teamConfig)               { teamConfig = Object.assign(teamConfig, data.teamConfig); }
     renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
     localSave();
   } catch(e) { console.error('[JSONBin] Load error:', e); }
@@ -915,7 +944,8 @@ async function cloudSave() {
           heroBgUrl: heroBgUrl || '',
           players: players,
           eventLabels: eventLabels,
-          importedIds: importedTournamentIds
+          importedIds: importedTournamentIds,
+          teamConfig: teamConfig
         })
       });
       if (!res.ok) {
@@ -1499,12 +1529,35 @@ function renderWeekly() {
 // ═══════════════════════════════════════════════════════
 //  TEAM TOTALS & HERO STATS
 // ═══════════════════════════════════════════════════════
+// ── Team config stored in cloud ──
+let teamConfig = {
+  VG:          { name:'VG',          color:'#4a9fd4', icon:'⚡', logo:'', fbUrl:'' },
+  ZPC:         { name:'ZPC',         color:'#9977cc', icon:'💫', logo:'', fbUrl:'' },
+  HYDRA:       { name:'HYDRA',       color:'#4aaa6a', icon:'🐉', logo:'', fbUrl:'' },
+  HSTLR:       { name:'HSTLR',       color:'#d47a3a', icon:'🎧', logo:'', fbUrl:'' },
+  Independent: { name:'Independent', color:'#888888', icon:'⚔️', logo:'', fbUrl:'' }
+};
+
 function renderTeamTotals() {
-  const teams={VG:0,ZPC:0,HYDRA:0,HSTLR:0,Independent:0};
-  players.forEach(p=>{ const t=getTeam(p.name)||'Independent'; if(teams[t]!==undefined) teams[t]+=p.total; else teams.Independent+=p.total; });
-  const colors={VG:'#4a9fd4',ZPC:'#9977cc',HYDRA:'#4aaa6a',HSTLR:'#d47a3a',Independent:'#888'};
-  const icons={VG:'⚡',ZPC:'💫',HYDRA:'🐉',HSTLR:'🎧',Independent:'⚔️'};
-  document.getElementById('team-totals').innerHTML=Object.entries(teams).sort((a,b)=>b[1]-a[1]).map(([team,pts])=>`<div class="point-card" style="border-color:${colors[team]}22"><span class="pts" style="color:${colors[team]}">${icons[team]} ${pts}</span><span class="lbl">${team}</span></div>`).join('');
+  const totals={VG:0,ZPC:0,HYDRA:0,HSTLR:0,Independent:0};
+  players.forEach(p=>{ const t=getTeam(p.name)||'Independent'; if(totals[t]!==undefined) totals[t]+=p.total; else totals.Independent+=p.total; });
+  document.getElementById('team-totals').innerHTML=Object.keys(totals).sort((a,b)=>totals[b]-totals[a]).map(key=>{
+    const cfg=teamConfig[key]||{name:key,color:'#888',icon:'⚔️',logo:'',fbUrl:''};
+    const logoHtml = cfg.logo
+      ? `<img src="${cfg.logo}" alt="${cfg.name}" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span style="display:none">${cfg.icon}</span>`
+      : `<span>${cfg.icon}</span>`;
+    const logoEl = cfg.fbUrl
+      ? `<a class="team-card-logo-wrap" href="${cfg.fbUrl}" target="_blank" rel="noopener" title="Visit ${cfg.name} on Facebook" style="text-decoration:none">${logoHtml}</a>`
+      : `<div class="team-card-logo-wrap">${logoHtml}</div>`;
+    return `<div class="team-card" style="border-color:${cfg.color}33">
+      ${logoEl}
+      <div class="team-card-info">
+        <div class="team-card-pts" style="color:${cfg.color}">${totals[key]}</div>
+        <div class="team-card-name">${cfg.name}</div>
+      </div>
+      <button class="team-card-edit-btn" onclick="openTeamEditModal('${key}')">✏️ Edit</button>
+    </div>`;
+  }).join('');
 }
 function updateHeroStats() {
   document.getElementById('stat-bladers').textContent=players.length;
@@ -1619,6 +1672,48 @@ function renderAchievements() {
 }
 
 // ═══════════════════════════════════════════════════════
+//  TEAM EDIT MODAL
+// ═══════════════════════════════════════════════════════
+function openTeamEditModal(key) {
+  if (!isAdmin) return;
+  const cfg = teamConfig[key] || {};
+  document.getElementById('team-edit-key').value = key;
+  document.getElementById('team-edit-sub').textContent = 'Editing: ' + (cfg.name || key);
+  document.getElementById('team-edit-name').value = cfg.name || key;
+  document.getElementById('team-edit-logo').value = cfg.logo || '';
+  document.getElementById('team-edit-fb').value = cfg.fbUrl || '';
+  document.getElementById('team-edit-color').value = cfg.color || '#888888';
+  document.getElementById('team-edit-colorpicker').value = cfg.color || '#888888';
+  previewTeamLogo(cfg.logo || '');
+  document.getElementById('team-edit-error').textContent = '';
+  document.getElementById('team-edit-modal').classList.add('open');
+}
+function closeTeamEditModal() {
+  document.getElementById('team-edit-modal').classList.remove('open');
+}
+function previewTeamLogo(url) {
+  const el = document.getElementById('team-logo-preview');
+  if (url && url.startsWith('http')) {
+    el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='?'" />`;
+  } else {
+    const key = document.getElementById('team-edit-key').value;
+    el.textContent = teamConfig[key]?.icon || '?';
+  }
+}
+function applyTeamEdit() {
+  const key = document.getElementById('team-edit-key').value;
+  if (!teamConfig[key]) return;
+  teamConfig[key].name   = document.getElementById('team-edit-name').value.trim() || key;
+  teamConfig[key].logo   = document.getElementById('team-edit-logo').value.trim();
+  teamConfig[key].fbUrl  = document.getElementById('team-edit-fb').value.trim();
+  teamConfig[key].color  = document.getElementById('team-edit-color').value.trim() || '#888888';
+  cloudSave();
+  renderTeamTotals();
+  closeTeamEditModal();
+  showToast('Team updated!', 'success');
+}
+
+// ═══════════════════════════════════════════════════════
 //  MANUAL SAVE BUTTON
 // ═══════════════════════════════════════════════════════
 async function adminManualSave() {
@@ -1644,5 +1739,41 @@ renderAchievements();
 loadSavedPhotos();
 applyHeroBgToPage();
 </script>
+
+<!-- ══════════════ TEAM EDIT MODAL ══════════════ -->
+<div class="modal-overlay" id="team-edit-modal">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-close" onclick="closeTeamEditModal()">✕</button>
+    <div class="modal-title">Edit Team</div>
+    <div class="modal-sub" id="team-edit-sub">Customize this team's display</div>
+    <input type="hidden" id="team-edit-key" />
+    <div class="form-group">
+      <label class="form-label">Team Name</label>
+      <input class="form-input" type="text" id="team-edit-name" placeholder="e.g. VG" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Logo Image URL</label>
+      <input class="form-input" type="text" id="team-edit-logo" placeholder="https://i.imgur.com/..." oninput="previewTeamLogo(this.value)" />
+      <div id="team-logo-preview" style="margin-top:8px;width:52px;height:52px;border-radius:50%;overflow:hidden;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:24px">?</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Facebook Page URL</label>
+      <input class="form-input" type="text" id="team-edit-fb" placeholder="https://www.facebook.com/..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Accent Color</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="form-input" type="text" id="team-edit-color" placeholder="#4a9fd4" style="flex:1" />
+        <input type="color" id="team-edit-colorpicker" style="width:40px;height:40px;border:none;background:none;cursor:pointer;border-radius:6px" oninput="document.getElementById('team-edit-color').value=this.value" />
+      </div>
+    </div>
+    <div class="modal-error" id="team-edit-error"></div>
+    <div class="modal-actions">
+      <button class="btn primary" style="flex:1" onclick="applyTeamEdit()">✅ Apply</button>
+      <button class="btn" onclick="closeTeamEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
