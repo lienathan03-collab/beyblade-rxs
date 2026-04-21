@@ -351,6 +351,12 @@
   .team-card-info { flex: 1; min-width: 0; }
   .team-card-pts { font-family: 'Share Tech Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1; }
   .team-card-name { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+  .team-card-delete-btn {
+    margin-left:4px; background:transparent; border:1px solid var(--red);
+    color:var(--red); border-radius:6px; padding:4px 8px; font-size:12px;
+    cursor:pointer; transition:all .15s; flex-shrink:0;
+  }
+  .team-card-delete-btn:hover { background:#1a0000; }
   .team-card-edit-btn {
     position: absolute; top: 6px; right: 8px;
     background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15);
@@ -566,6 +572,7 @@
     <button class="btn primary" style="font-size:11px;padding:5px 12px;" onclick="adminManualSave()">💾 Save Changes</button>
     <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openPhotoModal()">📸 Edit Podium Photos</button>
     <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openHeroBgModal()">🖼 Edit Background</button>
+    <button class="btn danger" style="font-size:11px;padding:5px 12px;" onclick="openResetModal()">🗑 Reset Data</button>
     <button class="btn danger" style="font-size:11px;padding:5px 12px;" onclick="adminLogout()">Logout</button>
   </div>
 </div>
@@ -660,10 +667,10 @@
   <div class="search-row">
     <input class="search-input" type="text" placeholder="Search blader..." oninput="filterTable(this.value)" />
     <button class="filter-btn active" onclick="filterTag('all', this)">All</button>
-    <button class="filter-btn" onclick="filterTag('VG', this)">VG</button>
-    <button class="filter-btn" onclick="filterTag('ZPC', this)">ZPC</button>
-    <button class="filter-btn" onclick="filterTag('HYDRA', this)">HYDRA</button>
-    <button class="filter-btn" onclick="filterTag('HSTLR', this)">HSTLR</button>
+    <button class="filter-btn" data-team="VG" onclick="filterTag('VG', this)">VG</button>
+    <button class="filter-btn" data-team="ZPC" onclick="filterTag('ZPC', this)">ZPC</button>
+    <button class="filter-btn" data-team="HYDRA" onclick="filterTag('HYDRA', this)">HYDRA</button>
+    <button class="filter-btn" data-team="HSTLR" onclick="filterTag('HSTLR', this)">HSTLR</button>
   </div>
   <table class="lb-table">
     <thead><tr>
@@ -786,7 +793,7 @@
     <div class="point-card"><span class="pts">3</span><span class="lbl">👑 Swiss King/Queen</span></div>
     <div class="point-card"><span class="pts">2</span><span class="lbl">⚔️ Swiss Slayer</span></div>
   </div>
-  <div class="section-header" style="margin-top:20px"><span class="section-title">Team Totals</span><div class="section-line"></div></div>
+  <div class="section-header" style="margin-top:20px"><span class="section-title">Team Totals</span><div class="section-line"></div><button class="btn admin-only-btn" id="add-team-btn" style="font-size:11px;padding:5px 12px;display:none" onclick="openAddTeamModal()">➕ Add Team</button></div>
   <div class="team-grid" id="team-totals"></div>
 </div>
 
@@ -969,6 +976,7 @@ function adminLogout() {
   document.getElementById('nav-admin-badge').style.display = 'none';
   document.getElementById('nav-login-hint').style.display = '';
   document.body.classList.remove('admin-active');
+  document.querySelectorAll('.admin-only-btn').forEach(b => b.style.display = 'none');
   // Switch challonge tab back to public view
   document.getElementById('challonge-admin').style.display = 'none';
   document.getElementById('challonge-public').style.display = 'block';
@@ -980,6 +988,7 @@ function applyAdminUI() {
   document.getElementById('nav-admin-badge').style.display = '';
   document.getElementById('nav-login-hint').style.display = 'none';
   document.body.classList.add('admin-active');
+  document.querySelectorAll('.admin-only-btn').forEach(b => b.style.display = '');
   // If currently on challonge tab, show admin panel
   if (document.getElementById('tab-challonge').classList.contains('active')) {
     document.getElementById('challonge-admin').style.display = 'block';
@@ -1497,20 +1506,49 @@ function importTournamentResults() {
     pts: getPointsForRank(p.final_rank||(i+1)),
     matchedPlayer: findPlayerByName((p.display_name||p.name||'').trim())
   }));
-  const matched = results.filter(r=>r.matchedPlayer);
-  const unmatched = results.filter(r=>!r.matchedPlayer);
+
+  // Build editable score preview — admin can change pts before confirming
+  const rowsHtml = results.map((r, i) => {
+    const nameDisplay = r.matchedPlayer
+      ? `${r.challongeName} → <strong>${r.matchedPlayer.name}</strong>`
+      : `${r.challongeName} <span class="inline-tag">NEW</span>`;
+    return `<div class="import-row" style="align-items:center">
+      <div class="ir-rank">#${r.rank}</div>
+      <div class="ir-name" style="flex:1">${nameDisplay}</div>
+      <input type="number" class="import-pts-input" data-idx="${i}" value="${r.pts}" min="0" max="99"
+        style="width:52px;background:var(--surface2);border:1px solid var(--border2);color:var(--accent);
+        border-radius:6px;padding:3px 6px;font-family:'Share Tech Mono',monospace;font-size:13px;text-align:center" />
+      <span style="font-size:11px;color:var(--muted);margin-left:4px">pts</span>
+    </div>`;
+  }).join('');
+
   const safeLabel = encodeURIComponent(label);
-  const safeResults = encodeURIComponent(JSON.stringify(results.map(r=>({...r, matchedPlayer: r.matchedPlayer ? r.matchedPlayer.name : null}))));
+  const safeBaseResults = encodeURIComponent(JSON.stringify(results.map(r=>({...r, matchedPlayer: r.matchedPlayer ? r.matchedPlayer.name : null}))));
+
   const preview = `<div class="import-preview">
-    <div class="import-title">📋 Preview — ${matched.length} matched, ${unmatched.length} new bladers</div>
-    ${matched.map(r=>`<div class="import-row"><div class="ir-rank">#${r.rank}</div><div class="ir-name">${r.challongeName} → <strong>${r.matchedPlayer.name}</strong></div><div class="ir-pts existing">+${r.pts}</div></div>`).join('')}
-    ${unmatched.length?`<div style="margin-top:8px;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:6px 0">New bladers</div>${unmatched.map(r=>`<div class="import-row"><div class="ir-rank">#${r.rank}</div><div class="ir-name">${r.challongeName}<span class="inline-tag">NEW</span></div><div class="ir-pts new">+${r.pts}</div></div>`).join('')}`:''}
+    <div class="import-title">✏️ Edit Scores — ${results.length} participants</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">You can change any score before importing.</div>
+    <div id="editable-results-wrap">${rowsHtml}</div>
     <div style="margin-top:14px;display:flex;gap:8px">
-      <button class="btn primary" onclick="confirmImport('${safeLabel}','${safeResults}','${selectedTournament?.id||''}')">✅ Confirm Import</button>
+      <button class="btn primary" onclick="confirmImportEdited('${safeLabel}','${safeBaseResults}','${selectedTournament?.id||''}')">✅ Confirm Import</button>
       <button class="btn" onclick="document.getElementById('import-preview-wrap').innerHTML=''">Cancel</button>
     </div>
   </div>`;
   document.getElementById('import-preview-wrap').innerHTML = preview;
+}
+
+function confirmImportEdited(labelEnc, baseResultsEnc, tournamentId) {
+  // Read any edited pts values from the input fields
+  const inputs = document.querySelectorAll('.import-pts-input');
+  const baseResults = JSON.parse(decodeURIComponent(baseResultsEnc));
+  inputs.forEach(inp => {
+    const idx = parseInt(inp.dataset.idx);
+    if (!isNaN(idx) && baseResults[idx]) {
+      baseResults[idx].pts = parseInt(inp.value) || 0;
+    }
+  });
+  const safeResults = encodeURIComponent(JSON.stringify(baseResults));
+  confirmImport(labelEnc, safeResults, tournamentId);
 }
 
 async function confirmImport(labelEnc, resultsEnc, tournamentId) {
@@ -1614,10 +1652,8 @@ function showTab(tab, btn) {
 // ═══════════════════════════════════════════════════════
 let currentFilter='all', currentSearch='';
 function getTeam(name) {
-  if (name.startsWith('VG')) return 'VG';
-  if (name.startsWith('ZPC')) return 'ZPC';
-  if (name.startsWith('HYDRA')) return 'HYDRA';
-  if (name.startsWith('HSTLR')) return 'HSTLR';
+  const keys = Object.keys(teamConfig).filter(k => k !== 'Independent');
+  for (const key of keys) { if (name.startsWith(key)) return key; }
   return '';
 }
 function getTagHtml(name) {
@@ -1700,25 +1736,38 @@ let teamConfig = {
 };
 
 function renderTeamTotals() {
-  const totals={VG:0,ZPC:0,HYDRA:0,HSTLR:0,Independent:0};
-  players.forEach(p=>{ const t=getTeam(p.name)||'Independent'; if(totals[t]!==undefined) totals[t]+=p.total; else totals.Independent+=p.total; });
-  document.getElementById('team-totals').innerHTML=Object.keys(totals).sort((a,b)=>totals[b]-totals[a]).map(key=>{
-    const cfg=teamConfig[key]||{name:key,color:'#888',icon:'⚔️',logo:'',fbUrl:''};
+  // Build totals dynamically from all teamConfig keys
+  const totals = {};
+  Object.keys(teamConfig).forEach(k => { totals[k] = 0; });
+  players.forEach(p => {
+    const t = getTeam(p.name) || 'Independent';
+    if (totals[t] !== undefined) totals[t] += p.total;
+    else { totals['Independent'] = (totals['Independent']||0) + p.total; }
+  });
+  document.getElementById('team-totals').innerHTML = Object.keys(totals).sort((a,b)=>totals[b]-totals[a]).map(key => {
+    const cfg = teamConfig[key] || {name:key, color:'#888', icon:'⚔️', logo:'', fbUrl:''};
     const logoHtml = cfg.logo
       ? `<img src="${cfg.logo}" alt="${cfg.name}" onerror="this.style.display='none';this.nextSibling.style.display='block'"><span style="display:none">${cfg.icon}</span>`
       : `<span>${cfg.icon}</span>`;
     const logoEl = cfg.fbUrl
       ? `<a class="team-card-logo-wrap" href="${cfg.fbUrl}" target="_blank" rel="noopener" title="Visit ${cfg.name} on Facebook" style="text-decoration:none">${logoHtml}</a>`
       : `<div class="team-card-logo-wrap">${logoHtml}</div>`;
+    const canDelete = key !== 'Independent';
+    const deleteBtn = canDelete ? `<button class="team-card-delete-btn admin-only-btn" style="display:none" onclick="confirmDeleteTeam('${key}')" title="Delete team">🗑</button>` : '';
     return `<div class="team-card" style="border-color:${cfg.color}33">
       ${logoEl}
       <div class="team-card-info">
         <div class="team-card-pts" style="color:${cfg.color}">${totals[key]}</div>
         <div class="team-card-name">${cfg.name}</div>
       </div>
-      <button class="team-card-edit-btn" onclick="openTeamEditModal('${key}')">✏️ Edit</button>
+      <button class="team-card-edit-btn admin-only-btn" style="display:none" onclick="openTeamEditModal('${key}')">✏️ Edit</button>
+      ${deleteBtn}
     </div>`;
   }).join('');
+  // Show/hide admin buttons based on current admin state
+  if (isAdmin) {
+    document.querySelectorAll('.admin-only-btn').forEach(b => b.style.display = '');
+  }
 }
 function updateHeroStats() {
   document.getElementById('stat-bladers').textContent=players.length;
@@ -2028,6 +2077,108 @@ async function adminManualSave() {
   }, 1200);
 }
 
+
+// ═══════════════════════════════════════════════════════
+//  RESET MODAL
+// ═══════════════════════════════════════════════════════
+function openResetModal() {
+  if (!isAdmin) return;
+  document.getElementById('reset-leaderboard').checked = false;
+  document.getElementById('reset-blader-stats').checked = false;
+  document.getElementById('reset-challonge-ids').checked = false;
+  document.getElementById('reset-error').textContent = '';
+  document.getElementById('reset-modal').classList.add('open');
+}
+function closeResetModal() { document.getElementById('reset-modal').classList.remove('open'); }
+async function executeReset() {
+  const resetLB   = document.getElementById('reset-leaderboard').checked;
+  const resetStat = document.getElementById('reset-blader-stats').checked;
+  const resetIDs  = document.getElementById('reset-challonge-ids').checked;
+  if (!resetLB && !resetStat && !resetIDs) {
+    document.getElementById('reset-error').textContent = 'Select at least one option.';
+    return;
+  }
+  if (resetLB)   { players = []; eventLabels = []; podiumPhotos = {1:'',2:'',3:''}; applyPodiumPhotos(); }
+  if (resetStat) { bladerStats = {}; }
+  if (resetIDs)  { importedTournamentIds = []; }
+  await cloudSave();
+  renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
+  closeResetModal();
+  const parts = [];
+  if (resetLB)   parts.push('leaderboard');
+  if (resetStat) parts.push('blader stats');
+  if (resetIDs)  parts.push('imported IDs');
+  showToast('✅ Reset: ' + parts.join(', '), 'success');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADD TEAM MODAL
+// ═══════════════════════════════════════════════════════
+function openAddTeamModal() {
+  if (!isAdmin) return;
+  document.getElementById('add-team-key').value   = '';
+  document.getElementById('add-team-name').value  = '';
+  document.getElementById('add-team-logo').value  = '';
+  document.getElementById('add-team-fb').value    = '';
+  document.getElementById('add-team-color').value = '#4a9fd4';
+  document.getElementById('add-team-colorpicker').value = '#4a9fd4';
+  document.getElementById('add-team-error').textContent = '';
+  document.getElementById('add-team-modal').classList.add('open');
+  setTimeout(() => document.getElementById('add-team-key').focus(), 150);
+}
+function closeAddTeamModal() { document.getElementById('add-team-modal').classList.remove('open'); }
+function applyAddTeam() {
+  const key   = document.getElementById('add-team-key').value.trim().toUpperCase();
+  const name  = document.getElementById('add-team-name').value.trim();
+  const logo  = document.getElementById('add-team-logo').value.trim();
+  const fbUrl = document.getElementById('add-team-fb').value.trim();
+  const color = document.getElementById('add-team-color').value.trim() || '#4a9fd4';
+  const errEl = document.getElementById('add-team-error');
+  if (!key)  { errEl.textContent = 'Team Key is required.'; return; }
+  if (!name) { errEl.textContent = 'Team Name is required.'; return; }
+  if (teamConfig[key]) { errEl.textContent = 'A team with that key already exists.'; return; }
+  teamConfig[key] = { name, color, icon: '⚔️', logo, fbUrl };
+  cloudSave();
+  renderTeamTotals();
+  // Update filter buttons
+  updateTeamFilterButtons();
+  closeAddTeamModal();
+  showToast('Team ' + name + ' added!', 'success');
+}
+
+// ═══════════════════════════════════════════════════════
+//  DELETE TEAM
+// ═══════════════════════════════════════════════════════
+function confirmDeleteTeam(key) {
+  if (!isAdmin) return;
+  const cfg = teamConfig[key];
+  if (!cfg) return;
+  if (!confirm('Delete team "' + cfg.name + '"? Players with this prefix will become Independent.')) return;
+  delete teamConfig[key];
+  cloudSave();
+  renderTeamTotals();
+  updateTeamFilterButtons();
+  showToast('Team ' + cfg.name + ' deleted.', '');
+}
+
+// ── Sync filter buttons with current teamConfig ──
+function updateTeamFilterButtons() {
+  const row = document.querySelector('.search-row');
+  if (!row) return;
+  // Remove all existing team filter buttons (not 'All')
+  row.querySelectorAll('.filter-btn[data-team]').forEach(b => b.remove());
+  // Re-add one per non-Independent team
+  const allBtn = row.querySelector('.filter-btn');
+  Object.keys(teamConfig).filter(k => k !== 'Independent').forEach(key => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.setAttribute('data-team', key);
+    btn.textContent = teamConfig[key].name || key;
+    btn.onclick = function() { filterTag(key, this); };
+    row.insertBefore(btn, null);
+  });
+}
+
 // ═══════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════
@@ -2167,6 +2318,81 @@ applyHeroBgToPage();
         <button class="btn primary" style="width:100%;margin-top:12px" onclick="saveBladerProfile()">💾 Save All Changes</button>
       </div>
 
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ RESET MODAL ══════════════ -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-close" onclick="closeResetModal()">✕</button>
+    <div class="modal-title" style="color:var(--red)">⚠️ Reset Data</div>
+    <div class="modal-sub">Choose what to reset. This cannot be undone.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin:16px 0">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border:1px solid var(--border2);border-radius:8px">
+        <input type="checkbox" id="reset-leaderboard" style="width:16px;height:16px;accent-color:var(--red)" />
+        <div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px">Leaderboard &amp; Players</div>
+          <div style="font-size:11px;color:var(--muted)">Clears all players, scores, and event columns</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border:1px solid var(--border2);border-radius:8px">
+        <input type="checkbox" id="reset-blader-stats" style="width:16px;height:16px;accent-color:var(--red)" />
+        <div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px">Blader Stats &amp; Match Records</div>
+          <div style="font-size:11px;color:var(--muted)">Clears photos, finishes, wins, and match data</div>
+        </div>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border:1px solid var(--border2);border-radius:8px">
+        <input type="checkbox" id="reset-challonge-ids" style="width:16px;height:16px;accent-color:var(--red)" />
+        <div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px">Imported Tournament IDs</div>
+          <div style="font-size:11px;color:var(--muted)">Allows re-importing already recorded tournaments</div>
+        </div>
+      </label>
+    </div>
+    <div class="modal-error" id="reset-error" style="color:var(--red)"></div>
+    <div class="modal-actions">
+      <button class="btn danger" style="flex:1" onclick="executeReset()">🗑 Reset Selected</button>
+      <button class="btn" onclick="closeResetModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ADD TEAM MODAL ══════════════ -->
+<div class="modal-overlay" id="add-team-modal">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-close" onclick="closeAddTeamModal()">✕</button>
+    <div class="modal-title">➕ Add New Team</div>
+    <div class="modal-sub">Players whose names start with the Team Key will be assigned to this team.</div>
+    <div class="form-group">
+      <label class="form-label">Team Key <span style="color:var(--muted);font-size:10px">(prefix players' names start with, e.g. "VG", "NEXUS")</span></label>
+      <input class="form-input" type="text" id="add-team-key" placeholder="e.g. NEXUS" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Team Name</label>
+      <input class="form-input" type="text" id="add-team-name" placeholder="e.g. Nexus Bladers" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Logo Image URL <span style="color:var(--muted);font-size:10px">(optional)</span></label>
+      <input class="form-input" type="text" id="add-team-logo" placeholder="https://i.imgur.com/..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Facebook Page URL <span style="color:var(--muted);font-size:10px">(optional)</span></label>
+      <input class="form-input" type="text" id="add-team-fb" placeholder="https://www.facebook.com/..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Accent Color</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="form-input" type="text" id="add-team-color" placeholder="#4a9fd4" style="flex:1" />
+        <input type="color" id="add-team-colorpicker" value="#4a9fd4" style="width:40px;height:40px;border:none;background:none;cursor:pointer;border-radius:6px" oninput="document.getElementById('add-team-color').value=this.value" />
+      </div>
+    </div>
+    <div class="modal-error" id="add-team-error"></div>
+    <div class="modal-actions">
+      <button class="btn primary" style="flex:1" onclick="applyAddTeam()">✅ Add Team</button>
+      <button class="btn" onclick="closeAddTeamModal()">Cancel</button>
     </div>
   </div>
 </div>
