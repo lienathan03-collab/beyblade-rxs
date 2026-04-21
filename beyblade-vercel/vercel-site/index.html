@@ -320,12 +320,18 @@
   .page-info { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); text-align: right; margin-top: 12px; }
 
   /* ACHIEVEMENTS */
-  .ach-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-  .ach-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 14px; }
-  .ach-icon { font-size: 28px; flex-shrink: 0; }
-  .ach-info .name { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
-  .ach-info .desc { font-size: 11px; color: var(--muted); letter-spacing: .5px; }
-  .ach-info .holder { font-size: 12px; color: var(--gold); margin-top: 4px; font-weight: 600; }
+  .ach-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .ach-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 20px; display: flex; align-items: center; gap: 18px; transition: border-color .2s; position: relative; }
+  .ach-card:hover { border-color: var(--border2); }
+  .ach-icon { font-size: 38px; flex-shrink: 0; }
+  .ach-info { flex: 1; min-width: 0; }
+  .ach-info .name { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 3px; }
+  .ach-info .desc { font-size: 12px; color: var(--muted); letter-spacing: .5px; line-height: 1.5; }
+  .ach-info .holder { font-size: 13px; color: var(--gold); margin-top: 6px; font-weight: 600; }
+  .ach-edit-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--border2); border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--muted); display: none; }
+  .admin-active .ach-card:hover .ach-edit-btn { display: block; }
+  .ach-add-btn { border: 2px dashed var(--border2); border-radius: 14px; padding: 22px 20px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; color: var(--muted); font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; transition: all .2s; }
+  .ach-add-btn:hover { border-color: var(--gold); color: var(--gold); }
 
   /* POINTS */
   .points-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 32px; }
@@ -699,7 +705,11 @@
 
 <!-- ══════════════ ACHIEVEMENTS TAB ══════════════ -->
 <div id="tab-achievements" class="section">
-  <div class="section-header"><span class="section-title">Hall of Fame</span><div class="section-line"></div></div>
+  <div class="section-header">
+    <span class="section-title">Hall of Fame</span>
+    <div class="section-line"></div>
+    <button class="btn admin-only-btn" style="display:none;font-size:11px;padding:5px 12px;" onclick="openAchModal()">➕ Add</button>
+  </div>
   <div id="ach-grid" class="ach-grid"></div>
 </div>
 
@@ -1010,7 +1020,7 @@ let cloudSaveTimeout = null;
 // ── localStorage fallback ──
 const LS_KEY = 'beyblade_rxs_data';
 function localSave() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify({ photos: podiumPhotos, heroBgUrl: heroBgUrl||'', players, eventLabels, importedIds: importedTournamentIds, teamConfig, bladerStats })); } catch(e) {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ photos: podiumPhotos, heroBgUrl: heroBgUrl||'', players, eventLabels, importedIds: importedTournamentIds, teamConfig, bladerStats, manualAchs: manualAchievements })); } catch(e) {}
 }
 function localLoad() {
   try {
@@ -1024,6 +1034,7 @@ function localLoad() {
     if (d.importedIds)               { importedTournamentIds = d.importedIds; }
     if (d.teamConfig)                  { teamConfig = Object.assign(teamConfig, d.teamConfig); }
     if (d.bladerStats)                 { bladerStats = Object.assign(bladerStats, d.bladerStats); }
+    if (d.manualAchs)                  { manualAchievements = d.manualAchs; }
     renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
     return true;
   } catch(e) { return false; }
@@ -1049,6 +1060,7 @@ async function cloudLoad() {
     if (data.importedIds)             { importedTournamentIds = data.importedIds; }
     if (data.teamConfig)               { teamConfig = Object.assign(teamConfig, data.teamConfig); }
     if (data.bladerStats)              { bladerStats = Object.assign(bladerStats, data.bladerStats); }
+    if (data.manualAchs)               { manualAchievements = data.manualAchs; }
     renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
     localSave();
   } catch(e) { console.error('[JSONBin] Load error:', e); }
@@ -1069,7 +1081,8 @@ async function cloudSave() {
           eventLabels: eventLabels,
           importedIds: importedTournamentIds,
           teamConfig: teamConfig,
-          bladerStats: bladerStats
+          bladerStats: bladerStats,
+          manualAchs: manualAchievements
         })
       });
       if (!res.ok) {
@@ -1882,8 +1895,10 @@ function updateHeroStats() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  ACHIEVEMENTS — computed live from players[] data
+//  ACHIEVEMENTS — auto-computed + manual custom ones
 // ═══════════════════════════════════════════════════════
+let manualAchievements = []; // { icon, name, desc, holder, photo }
+
 function renderAchievements() {
   const grid = document.getElementById('ach-grid');
   if (!grid || players.length === 0) return;
@@ -1970,16 +1985,81 @@ function renderAchievements() {
       achs.push({ icon:'📈', name:'Biggest Climber', desc:'Most improved in second half of season', holder: comebacks[0].p.name });
   }
 
+  // ── Merge manual achievements (show at top) ──
+  const allAchs = [...manualAchievements.map((a,i) => ({...a, _manual: true, _idx: i})), ...achs.map(a => ({...a, _manual: false}))];
+
   // ── Render ──
-  grid.innerHTML = achs.map(a => `
-    <div class="ach-card">
-      <div class="ach-icon">${a.icon}</div>
+  grid.innerHTML = allAchs.map(a => {
+    const photoHtml = a.photo ? `<img src="${a.photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border2)" onerror="this.style.display='none'" />` : `<div class="ach-icon">${a.icon||'🏆'}</div>`;
+    const editBtn = a._manual
+      ? `<button class="ach-edit-btn" onclick="editAch(${a._idx})">✏️</button>`
+      : `<button class="ach-edit-btn" onclick="editAutoAch(this,'${(a.icon||'').replace(/'/g,'\'')}','${(a.name||'').replace(/'/g,'\'')}','${(a.desc||'').replace(/'/g,'\'')}','${(a.holder||'').replace(/'/g,'\'')}')">✏️</button>`;
+    return `<div class="ach-card">
+      ${editBtn}
+      ${photoHtml}
       <div class="ach-info">
         <div class="name">${a.name}</div>
         <div class="desc">${a.desc}</div>
         <div class="holder">${a.holder}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+function openAchModal(idx) {
+  const isEdit = idx !== undefined;
+  const a = isEdit ? manualAchievements[idx] : {icon:'🏆', name:'', desc:'', holder:'', photo:''};
+  document.getElementById('ach-modal-title').textContent = isEdit ? '✏️ Edit Achievement' : '➕ Add Achievement';
+  document.getElementById('ach-modal-idx').value = isEdit ? idx : '';
+  document.getElementById('ach-modal-icon').value = a.icon || '🏆';
+  document.getElementById('ach-modal-name').value = a.name || '';
+  document.getElementById('ach-modal-desc').value = a.desc || '';
+  document.getElementById('ach-modal-holder').value = a.holder || '';
+  document.getElementById('ach-modal-photo').value = a.photo || '';
+  document.getElementById('ach-modal-delete').style.display = isEdit ? 'block' : 'none';
+  document.getElementById('ach-modal').classList.add('open');
+}
+function editAch(idx) { if (isAdmin) openAchModal(idx); }
+function closeAchModal() { document.getElementById('ach-modal').classList.remove('open'); }
+function saveAchModal() {
+  const idx = document.getElementById('ach-modal-idx').value;
+  const a = {
+    icon: document.getElementById('ach-modal-icon').value.trim() || '🏆',
+    name: document.getElementById('ach-modal-name').value.trim(),
+    desc: document.getElementById('ach-modal-desc').value.trim(),
+    holder: document.getElementById('ach-modal-holder').value.trim(),
+    photo: document.getElementById('ach-modal-photo').value.trim()
+  };
+  if (!a.name) { showToast('Name is required', 'error'); return; }
+  if (idx === '') { manualAchievements.push(a); }
+  else { manualAchievements[parseInt(idx)] = a; }
+  cloudSave();
+  renderAchievements();
+  closeAchModal();
+  showToast(idx === '' ? 'Achievement added!' : 'Achievement updated!', 'success');
+}
+function deleteAchModal() {
+  const idx = parseInt(document.getElementById('ach-modal-idx').value);
+  if (isNaN(idx)) return;
+  manualAchievements.splice(idx, 1);
+  cloudSave();
+  renderAchievements();
+  closeAchModal();
+  showToast('Achievement removed.', '');
+}
+// Allow editing auto-generated achievements by converting them to manual ones
+function editAutoAch(btn, icon, name, desc, holder) {
+  if (!isAdmin) return;
+  // Find this auto achievement in the rendered grid and convert to manual
+  document.getElementById('ach-modal-title').textContent = '✏️ Edit Achievement';
+  document.getElementById('ach-modal-idx').value = '';
+  document.getElementById('ach-modal-icon').value = icon;
+  document.getElementById('ach-modal-name').value = name;
+  document.getElementById('ach-modal-desc').value = desc;
+  document.getElementById('ach-modal-holder').value = holder;
+  document.getElementById('ach-modal-photo').value = '';
+  document.getElementById('ach-modal-delete').style.display = 'none';
+  document.getElementById('ach-modal').classList.add('open');
 }
 
 
@@ -2069,18 +2149,15 @@ function openBladerProfile(name) {
 
   // admin edit fields
   const st = getBladerStats(name);
-  modal.querySelector('#pe-name').value        = name;
-  modal.querySelector('#pe-photo').value       = st.photo||'';
-  modal.querySelector('#pe-spin').value        = '';
-  modal.querySelector('#pe-burst').value       = '';
-  modal.querySelector('#pe-extreme').value     = '';
-  modal.querySelector('#pe-current-totals').textContent =
-    `Current totals → Spin: ${st.spinFinishes||0}  Burst: ${st.burstFinishes||0}  Extreme: ${st.extremeFinishes||0}`;
-  modal.querySelector('#pe-wins-display').textContent =
-    `Tracked: ${st.wins||0}W – ${st.losses||0}L / ${st.matchPoints||0} match pts`;
-  modal.querySelector('#pe-wins-input').value      = '';
-  modal.querySelector('#pe-losses-input').value    = '';
-  modal.querySelector('#pe-matchpts-input').value  = '';
+  modal.querySelector('#pe-name').value            = name;
+  modal.querySelector('#pe-display-name').value    = name;
+  modal.querySelector('#pe-photo').value           = st.photo||'';
+  modal.querySelector('#pe-spin').value            = st.spinFinishes||0;
+  modal.querySelector('#pe-burst').value           = st.burstFinishes||0;
+  modal.querySelector('#pe-extreme').value         = st.extremeFinishes||0;
+  modal.querySelector('#pe-wins-input').value      = st.wins||0;
+  modal.querySelector('#pe-losses-input').value    = st.losses||0;
+  modal.querySelector('#pe-matchpts-input').value  = st.matchPoints||0;
 
   // populate event scores override grid
   const p = players.find(pl => pl.name === name);
@@ -2112,15 +2189,26 @@ function saveBladerProfile() {
   const name = document.getElementById('pe-name').value;
   if (!name) return;
   const st = ensureBladerStats(name);
-  // photo sets/replaces
   st.photo = document.getElementById('pe-photo').value.trim();
-  // finishes ACCUMULATE — add new values to existing totals
-  const addSpin    = parseInt(document.getElementById('pe-spin').value)||0;
-  const addBurst   = parseInt(document.getElementById('pe-burst').value)||0;
-  const addExtreme = parseInt(document.getElementById('pe-extreme').value)||0;
-  st.spinFinishes    = (st.spinFinishes||0)    + addSpin;
-  st.burstFinishes   = (st.burstFinishes||0)   + addBurst;
-  st.extremeFinishes = (st.extremeFinishes||0) + addExtreme;
+  // finishes are now direct total values
+  const spinVal    = document.getElementById('pe-spin').value.trim();
+  const burstVal   = document.getElementById('pe-burst').value.trim();
+  const extremeVal = document.getElementById('pe-extreme').value.trim();
+  if (spinVal    !== '') st.spinFinishes    = parseInt(spinVal)    || 0;
+  if (burstVal   !== '') st.burstFinishes   = parseInt(burstVal)   || 0;
+  if (extremeVal !== '') st.extremeFinishes = parseInt(extremeVal) || 0;
+  const addSpin = 0, addBurst = 0, addExtreme = 0; // kept for toast message compat
+  // handle rename
+  const newDisplayName = document.getElementById('pe-display-name').value.trim();
+  if (newDisplayName && newDisplayName !== name) {
+    const p = players.find(pl => pl.name === name);
+    if (p) {
+      // move bladerStats to new key
+      bladerStats[newDisplayName] = st;
+      delete bladerStats[name];
+      p.name = newDisplayName;
+    }
+  }
   // event score overrides — only update slots where admin typed a value
   const evInputs = document.querySelectorAll('.pe-event-score-input');
   evInputs.forEach(inp => {
@@ -2417,51 +2505,60 @@ applyHeroBgToPage();
       <div class="profile-edit-section">
         <div class="profile-edit-title">⚙️ Admin — Edit Stats</div>
         <input type="hidden" id="pe-name" />
+
+        <!-- Photo + Name -->
         <div class="profile-edit-grid">
+          <div class="profile-edit-field full">
+            <label>Display Name</label>
+            <input type="text" id="pe-display-name" placeholder="Player name on leaderboard" />
+          </div>
           <div class="profile-edit-field full">
             <label>Photo URL</label>
             <input type="text" id="pe-photo" placeholder="https://i.imgur.com/..." />
           </div>
         </div>
-        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:10px 0 6px">
-          ➕ Add Finishes This Session
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Enter how many happened <em>today</em> — they stack on top of the existing total.</div>
-        <div id="pe-current-totals" style="font-size:11px;color:var(--muted2);margin-bottom:10px;font-family:'Share Tech Mono',monospace"></div>
+
+        <!-- Event Scores — direct editable -->
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:14px 0 6px">📅 Event Points</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Edit any event score directly. Changes update totals automatically.</div>
+        <div id="pe-event-scores-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px"></div>
+
+        <!-- Finishes — direct totals (not additive) -->
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:14px 0 6px">🌀 Finish Counts</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Set the exact total count for each finish type.</div>
         <div class="profile-edit-grid">
           <div class="profile-edit-field">
-            <label>+ Spin Finishes</label>
+            <label>Spin Finishes</label>
             <input type="number" id="pe-spin" placeholder="0" min="0" />
           </div>
           <div class="profile-edit-field">
-            <label>+ Burst Finishes</label>
+            <label>Burst Finishes</label>
             <input type="number" id="pe-burst" placeholder="0" min="0" />
           </div>
           <div class="profile-edit-field full">
-            <label>+ Extreme Finishes</label>
+            <label>Extreme Finishes</label>
             <input type="number" id="pe-extreme" placeholder="0" min="0" />
           </div>
         </div>
-        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin:14px 0 4px">📅 Event Scores Override</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Set the exact points for any event. Leave blank to keep current value.</div>
-        <div id="pe-event-scores-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px"></div>
-        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">⚔️ Match Record Override</div>
-        <div id="pe-wins-display" style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted2);padding:2px 0 8px"></div>
+
+        <!-- Match Record -->
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:14px 0 6px">⚔️ Match Record</div>
         <div class="profile-edit-grid">
           <div class="profile-edit-field">
             <label>Wins</label>
-            <input type="number" id="pe-wins-input" placeholder="leave blank = keep" min="0" />
+            <input type="number" id="pe-wins-input" placeholder="0" min="0" />
           </div>
           <div class="profile-edit-field">
             <label>Losses</label>
-            <input type="number" id="pe-losses-input" placeholder="leave blank = keep" min="0" />
+            <input type="number" id="pe-losses-input" placeholder="0" min="0" />
           </div>
           <div class="profile-edit-field full">
-            <label>Total Match Points <span style="color:var(--muted);font-size:10px">— used for PPG</span></label>
-            <input type="number" id="pe-matchpts-input" placeholder="leave blank = keep" min="0" />
+            <label>Total Match Points <span style="color:var(--muted);font-size:10px">— for PPG</span></label>
+            <input type="number" id="pe-matchpts-input" placeholder="0" min="0" />
           </div>
         </div>
-        <button class="btn primary" style="width:100%;margin-top:12px" onclick="saveBladerProfile()">💾 Save All Changes</button>
+
+        <button class="btn primary" style="width:100%;margin-top:16px" onclick="saveBladerProfile()">💾 Save All Changes</button>
       </div>
 
     </div>
@@ -2539,6 +2636,41 @@ applyHeroBgToPage();
     <div class="modal-actions">
       <button class="btn primary" style="flex:1" onclick="applyAddTeam()">✅ Add Team</button>
       <button class="btn" onclick="closeAddTeamModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ ACHIEVEMENT MODAL ══════════════ -->
+<div class="modal-overlay" id="ach-modal">
+  <div class="modal" style="max-width:460px">
+    <button class="modal-close" onclick="closeAchModal()">✕</button>
+    <div class="modal-title" id="ach-modal-title">➕ Add Achievement</div>
+    <input type="hidden" id="ach-modal-idx" />
+    <div class="form-group">
+      <label class="form-label">Icon / Emoji</label>
+      <input class="form-input" type="text" id="ach-modal-icon" placeholder="🏆" style="font-size:22px;text-align:center;width:80px" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Achievement Name</label>
+      <input class="form-input" type="text" id="ach-modal-name" placeholder="e.g. First Blood" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input class="form-input" type="text" id="ach-modal-desc" placeholder="e.g. First player to burst an opponent" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Holder / Winner</label>
+      <input class="form-input" type="text" id="ach-modal-holder" placeholder="e.g. NONOY X — 3 events" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Photo URL <span style="color:var(--muted);font-size:10px">(optional — replaces emoji icon)</span></label>
+      <input class="form-input" type="text" id="ach-modal-photo" placeholder="https://i.imgur.com/..." />
+    </div>
+    <div class="modal-actions" style="margin-top:12px">
+      <button class="btn primary" style="flex:1" onclick="saveAchModal()">💾 Save</button>
+      <button class="btn danger" id="ach-modal-delete" style="display:none" onclick="deleteAchModal()">🗑 Delete</button>
+      <button class="btn" onclick="closeAchModal()">Cancel</button>
     </div>
   </div>
 </div>
