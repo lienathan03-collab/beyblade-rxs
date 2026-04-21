@@ -157,7 +157,7 @@
     pointer-events: none; overflow: hidden;
   }
   .podium-no-photo img {
-    width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: 1;
+    width: 100%; height: 100%; object-fit: cover; object-position: center top; opacity: 0.5;
   }
 
 
@@ -631,7 +631,7 @@
     <!-- 2nd Place -->
     <div class="podium-card p2 pa-silver" id="card-2nd">
       <div class="podium-bg" id="bg-2nd"></div>
-      <div class="podium-no-photo"><img src="https://i.imgur.com/ixgnPf6.jpeg" alt="" /></div>
+      <div class="podium-no-photo"><img src="https://i.imgur.com/0KtgsFq.png" alt="" /></div>
       <div class="podium-place">🥈</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(2)">📷 Edit</button>
       <div class="podium-stats">
@@ -644,7 +644,7 @@
     <!-- 1st Place — Season King -->
     <div class="podium-card p1 pa-gold" id="card-1st">
       <div class="podium-bg" id="bg-1st"></div>
-      <div class="podium-no-photo"><img src="https://i.imgur.com/ixgnPf6.jpeg" alt="" /></div>
+      <div class="podium-no-photo"><img src="https://i.imgur.com/0KtgsFq.png" alt="" /></div>
       <div class="podium-place">👑</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(1)">📷 Edit</button>
       <div class="podium-stats">
@@ -657,7 +657,7 @@
     <!-- 3rd Place -->
     <div class="podium-card p3 pa-bronze" id="card-3rd">
       <div class="podium-bg" id="bg-3rd"></div>
-      <div class="podium-no-photo"><img src="https://i.imgur.com/ixgnPf6.jpeg" alt="" /></div>
+      <div class="podium-no-photo"><img src="https://i.imgur.com/0KtgsFq.png" alt="" /></div>
       <div class="podium-place">🥉</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(3)">📷 Edit</button>
       <div class="podium-stats">
@@ -1106,7 +1106,7 @@ function loadSavedPhotos() {
   cloudLoad();
 }
 
-const DEFAULT_CARD_BG = 'https://i.imgur.com/ixgnPf6.jpeg';
+const DEFAULT_CARD_BG = 'https://i.imgur.com/0KtgsFq.png';
 function applyPodiumPhotos() {
   [1,2,3].forEach(n => {
     const url = podiumPhotos[n];
@@ -2173,11 +2173,12 @@ function openBladerProfile(name) {
   const st0 = getBladerStats(name);
   const heroBgSrc = st0.bgPhoto || st0.photo || '';
   const heroBgEl = modal.querySelector('.profile-hero-bg');
+  const DEFAULT_HERO_BG = 'https://i.imgur.com/ixgnPf6.jpeg';
   if (heroBgSrc) {
     heroBgEl.innerHTML = `<img src="${heroBgSrc}" crossorigin="anonymous" />`;
   } else {
-    heroBgEl.innerHTML = '';
-    heroBgEl.style.background = '#1e1e1e';
+    heroBgEl.innerHTML = `<img src="${DEFAULT_HERO_BG}" crossorigin="anonymous" />`;
+    heroBgEl.style.background = '';
   }
 
   const av = modal.querySelector('.profile-avatar');
