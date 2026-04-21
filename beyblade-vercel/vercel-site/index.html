@@ -550,6 +550,8 @@
 <!-- ══════════════ ACHIEVEMENTS TAB ══════════════ -->
 <div id="tab-achievements" class="section">
   <div class="section-header"><span class="section-title">Hall of Fame</span><div class="section-line"></div></div>
+  <div id="ach-grid" class="ach-grid"></div>
+</div>
   <div class="ach-grid">
     <div class="ach-card"><div class="ach-icon">👑</div><div class="ach-info"><div class="name">Season King</div><div class="desc">Highest total points this season</div><div class="holder">VG.xUYAPOS — 89 pts</div></div></div>
     <div class="ach-card"><div class="ach-icon">🥈</div><div class="ach-info"><div class="name">Runner Up</div><div class="desc">Second highest total points</div><div class="holder">NONOY X — 70 pts</div></div></div>
@@ -934,19 +936,18 @@ function localLoad() {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return false;
     const d = JSON.parse(raw);
-    if (d.photos)      { podiumPhotos = d.photos; applyPodiumPhotos(); }
-    if (d.heroBgUrl !== undefined) { heroBgUrl = d.heroBgUrl; applyHeroBgToPage(); }
-    if (d.players)     { players = d.players; }
-    if (d.eventLabels) { eventLabels = d.eventLabels; }
-    if (d.importedIds) { importedTournamentIds = d.importedIds; }
-    renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
+    if (d.photos)                    { podiumPhotos = d.photos; applyPodiumPhotos(); }
+    if (d.heroBgUrl !== undefined)   { heroBgUrl = d.heroBgUrl; applyHeroBgToPage(); }
+    if (d.players)                   { players = d.players; }
+    if (d.eventLabels)               { eventLabels = d.eventLabels; }
+    if (d.importedIds)               { importedTournamentIds = d.importedIds; }
+    renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
     return true;
   } catch(e) { return false; }
 }
 
 async function cloudLoad() {
-  // Show local data immediately while cloud loads
-  localLoad();
+  localLoad(); // show local data instantly while cloud fetches
   try {
     const res = await fetch(JSONBIN_URL + '/latest', {
       headers: { 'X-Master-Key': JSONBIN_API_KEY, 'X-Bin-Meta': 'false' }
@@ -957,40 +958,37 @@ async function cloudLoad() {
       return;
     }
     const data = await res.json();
-    console.log('[JSONBin] Loaded:', data);
-    if (data.photos)      { podiumPhotos = data.photos; applyPodiumPhotos(); }
+    console.log('[JSONBin] Loaded OK');
+    if (data.photos)                  { podiumPhotos = data.photos; applyPodiumPhotos(); }
     if (data.heroBgUrl !== undefined) { heroBgUrl = data.heroBgUrl; applyHeroBgToPage(); }
-    if (data.players)     { players = data.players; }
-    if (data.eventLabels) { eventLabels = data.eventLabels; }
-    if (data.importedIds) { importedTournamentIds = data.importedIds; }
-    renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
-    localSave(); // mirror to localStorage
+    if (data.players)                 { players = data.players; }
+    if (data.eventLabels)             { eventLabels = data.eventLabels; }
+    if (data.importedIds)             { importedTournamentIds = data.importedIds; }
+    renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
+    localSave();
   } catch(e) { console.error('[JSONBin] Load error:', e); }
 }
 
 async function cloudSave() {
-  localSave(); // always save locally first
+  localSave();
   clearTimeout(cloudSaveTimeout);
   cloudSaveTimeout = setTimeout(async () => {
     try {
-      const payload = {
-        photos: podiumPhotos,
-        heroBgUrl: heroBgUrl || '',
-        players: players,
-        eventLabels: eventLabels,
-        importedIds: importedTournamentIds
-      };
       const res = await fetch(JSONBIN_URL, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          photos: podiumPhotos,
+          heroBgUrl: heroBgUrl || '',
+          players: players,
+          eventLabels: eventLabels,
+          importedIds: importedTournamentIds
+        })
       });
       if (!res.ok) {
         console.error('[JSONBin] Save failed:', res.status, await res.text());
         showToast('⚠️ Cloud save failed (' + res.status + ')', 'error');
-      } else {
-        console.log('[JSONBin] Saved OK');
-      }
+      } else { console.log('[JSONBin] Saved OK'); }
     } catch(e) { console.error('[JSONBin] Save error:', e); }
   }, 800);
 }
@@ -1459,7 +1457,7 @@ function confirmImport(labelEnc, resultsEnc, tournamentId) {
     importedTournamentIds.push(String(tournamentId));
     cloudSave();
   }
-  renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
+  renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
   cloudSave();
   document.getElementById('import-preview-wrap').innerHTML = `<div class="api-note" style="color:var(--green)">✅ <strong>${label}</strong> recorded! A new column has been added to Weekly Scores.</div>`;
   showToast(`${label} recorded!`, 'success');
@@ -1587,12 +1585,114 @@ function updateHeroStats() {
 }
 
 // ═══════════════════════════════════════════════════════
+//  ACHIEVEMENTS — computed live from players[] data
+// ═══════════════════════════════════════════════════════
+function renderAchievements() {
+  const grid = document.getElementById('ach-grid');
+  if (!grid || players.length === 0) return;
+
+  const achs = [];
+
+  // ── Podium ──
+  if (players[0]) achs.push({ icon:'👑', name:'Season King',   desc:'Highest total points this season',    holder: players[0].name + ' — ' + players[0].total + ' pts' });
+  if (players[1]) achs.push({ icon:'🥈', name:'Runner Up',     desc:'Second highest total points',          holder: players[1].name + ' — ' + players[1].total + ' pts' });
+  if (players[2]) achs.push({ icon:'🥉', name:'Third Place',   desc:'Third highest total points',           holder: players[2].name + ' — ' + players[2].total + ' pts' });
+
+  // ── Most Events Attended (most non-zero scores) ──
+  const byEvents = [...players].sort((a,b) => {
+    const ea = a.scores.filter(s=>s>0).length;
+    const eb = b.scores.filter(s=>s>0).length;
+    return eb - ea;
+  });
+  if (byEvents[0]) {
+    const count = byEvents[0].scores.filter(s=>s>0).length;
+    achs.push({ icon:'⚡', name:'Most Events', desc:'Participated in most events', holder: byEvents[0].name + ' — ' + count + ' events' });
+  }
+
+  // ── Highest single-event score ──
+  let topSingle = null, topSingleScore = 0;
+  players.forEach(p => {
+    const best = Math.max(...p.scores);
+    if (best > topSingleScore) { topSingleScore = best; topSingle = p; }
+  });
+  if (topSingle) achs.push({ icon:'💥', name:'Best Single Event', desc:'Highest score in one event', holder: topSingle.name + ' — ' + topSingleScore + ' pts' });
+
+  // ── Perfect / max score (8 pts = 1st place) in any event ──
+  const perfPlayers = players.filter(p => p.scores.some(s => s >= 8)).map(p=>p.name);
+  if (perfPlayers.length)
+    achs.push({ icon:'🎯', name:'Event Champion', desc:'Finished 1st in at least one event', holder: perfPlayers.join(', ') });
+
+  // ── Most consistent (lowest std deviation among players with 5+ events) ──
+  const active = players.filter(p => p.scores.filter(s=>s>0).length >= 5);
+  if (active.length) {
+    const consistency = active.map(p => {
+      const sc = p.scores.filter(s=>s>0);
+      const avg = sc.reduce((a,b)=>a+b,0)/sc.length;
+      const variance = sc.reduce((a,b)=>a+(b-avg)**2,0)/sc.length;
+      return { p, std: Math.sqrt(variance) };
+    }).sort((a,b)=>a.std-b.std);
+    achs.push({ icon:'🎱', name:'Most Consistent', desc:'Lowest score variance (5+ events)', holder: consistency[0].p.name + ' — avg ' + (consistency[0].p.scores.filter(s=>s>0).reduce((a,b)=>a+b,0)/consistency[0].p.scores.filter(s=>s>0).length).toFixed(1) + ' pts' });
+  }
+
+  // ── Top team members ──
+  const teams = ['VG','ZPC','HYDRA','HSTLR'];
+  const icons = { VG:'🔥', ZPC:'💎', HYDRA:'🐉', HSTLR:'🎧' };
+  teams.forEach(team => {
+    const members = players.filter(p => getTeam(p.name) === team);
+    if (members.length) {
+      const top = members[0]; // already sorted by total
+      achs.push({ icon: icons[team], name:'Top ' + team, desc:'Highest scoring ' + team + ' member', holder: top.name + ' — ' + top.total + ' pts' });
+    }
+  });
+
+  // ── Most improved: biggest score in latest event vs average ──
+  if (eventLabels.length > 0) {
+    const lastIdx = eventLabels.length - 1;
+    const lastEventName = eventLabels[lastIdx];
+    const lastWinner = [...players].filter(p=>p.scores[lastIdx]>0).sort((a,b)=>b.scores[lastIdx]-a.scores[lastIdx])[0];
+    if (lastWinner)
+      achs.push({ icon:'⭐', name:'Latest Event Winner', desc:'Won ' + lastEventName, holder: lastWinner.name + ' — ' + lastWinner.scores[lastIdx] + ' pts' });
+  }
+
+  // ── First event winner ──
+  if (eventLabels.length > 0) {
+    const firstWinner = [...players].filter(p=>p.scores[0]>0).sort((a,b)=>b.scores[0]-a.scores[0])[0];
+    if (firstWinner)
+      achs.push({ icon:'🚀', name:'First Champion', desc:'Won ' + (eventLabels[0]||'Event 1'), holder: firstWinner.name + ' — ' + firstWinner.scores[0] + ' pts' });
+  }
+
+  // ── Biggest comeback: low early average, high recent average ──
+  if (eventLabels.length >= 6) {
+    const mid = Math.floor(eventLabels.length / 2);
+    const comebacks = players.filter(p=>p.scores.filter(s=>s>0).length>=4).map(p=>{
+      const early = p.scores.slice(0,mid).reduce((a,b)=>a+b,0);
+      const late  = p.scores.slice(mid).reduce((a,b)=>a+b,0);
+      return { p, diff: late - early };
+    }).sort((a,b)=>b.diff-a.diff);
+    if (comebacks[0] && comebacks[0].diff > 0)
+      achs.push({ icon:'📈', name:'Biggest Climber', desc:'Most improved in second half of season', holder: comebacks[0].p.name });
+  }
+
+  // ── Render ──
+  grid.innerHTML = achs.map(a => `
+    <div class="ach-card">
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-info">
+        <div class="name">${a.name}</div>
+        <div class="desc">${a.desc}</div>
+        <div class="holder">${a.holder}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════
 renderLeaderboard();
 renderWeekly();
 renderTeamTotals();
 updateHeroStats();
+renderAchievements();
 loadSavedPhotos();
 applyHeroBgToPage();
 </script>
