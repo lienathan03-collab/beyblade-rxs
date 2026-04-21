@@ -1106,6 +1106,7 @@ function loadSavedPhotos() {
   cloudLoad();
 }
 
+const DEFAULT_CARD_BG = 'https://i.imgur.com/0KtgsFq.png';
 function applyPodiumPhotos() {
   [1,2,3].forEach(n => {
     const url = podiumPhotos[n];
@@ -1114,11 +1115,8 @@ function applyPodiumPhotos() {
     const bgEl = document.getElementById(bgId);
     const noPhotoEl = document.querySelector('#'+cardId+' .podium-no-photo');
     if (!bgEl) return;
-    if (url) {
-      bgEl.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentElement.innerHTML=\'\';" />';
-    } else {
-      bgEl.innerHTML = '';
-    }
+    const imgUrl = url || DEFAULT_CARD_BG;
+    bgEl.innerHTML = '<img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentElement.innerHTML=\'\';" />';
     if (noPhotoEl) noPhotoEl.style.display = 'none';
   });
 }
@@ -2214,6 +2212,11 @@ function openBladerProfile(name) {
   modal.querySelector('#pe-display-name').value    = name;
   modal.querySelector('#pe-photo').value           = st.photo||'';
   modal.querySelector('#pe-bgphoto').value         = st.bgPhoto||'';
+  // fill URL fields (only if not base64)
+  const photoUrlEl = modal.querySelector('#pe-photo-url');
+  if (photoUrlEl) photoUrlEl.value = (st.photo && !st.photo.startsWith('data:')) ? st.photo : '';
+  const bgUrlEl = modal.querySelector('#pe-bgphoto-url');
+  if (bgUrlEl) bgUrlEl.value = (st.bgPhoto && !st.bgPhoto.startsWith('data:')) ? st.bgPhoto : '';
   // update photo preview thumbnail
   const photoPrev = modal.querySelector('#pe-photo-preview');
   photoPrev.innerHTML = st.photo
@@ -2261,6 +2264,39 @@ function closeBladerProfile() {
   document.getElementById('blader-profile-modal').classList.remove('open');
 }
 
+function applyProfilePhotoFromUrl(url) {
+  url = url.trim();
+  document.getElementById('pe-photo').value = url;
+  const prev = document.getElementById('pe-photo-preview');
+  if (url) {
+    prev.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='👤'" />`;
+    const bgHidden = document.getElementById('pe-bgphoto').value;
+    if (!bgHidden) {
+      const heroBgEl = document.querySelector('#blader-profile-modal .profile-hero-bg');
+      heroBgEl.innerHTML = `<img src="${url}" crossorigin="anonymous" />`;
+    }
+  } else {
+    prev.innerHTML = '👤';
+  }
+}
+
+function applyBgPhotoFromUrl(url) {
+  url = url.trim();
+  document.getElementById('pe-bgphoto').value = url;
+  const prev = document.getElementById('pe-bgphoto-preview');
+  const heroBgEl = document.querySelector('#blader-profile-modal .profile-hero-bg');
+  if (url) {
+    prev.style.backgroundImage = `url("${url}")`;
+    prev.style.backgroundSize = 'cover';
+    prev.style.backgroundPosition = 'center';
+    heroBgEl.innerHTML = `<img src="${url}" crossorigin="anonymous" />`;
+  } else {
+    prev.style.backgroundImage = '';
+    heroBgEl.innerHTML = '';
+    heroBgEl.style.background = '#1e1e1e';
+  }
+}
+
 function handleProfilePhotoUpload(input) {
   const file = input.files[0];
   if (!file) return;
@@ -2268,9 +2304,9 @@ function handleProfilePhotoUpload(input) {
   reader.onload = function(e) {
     const dataUrl = e.target.result;
     document.getElementById('pe-photo').value = dataUrl;
+    document.getElementById('pe-photo-url').value = '';
     const prev = document.getElementById('pe-photo-preview');
     prev.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover" />`;
-    // also update live hero bg if no dedicated bg set
     const bgHidden = document.getElementById('pe-bgphoto').value;
     if (!bgHidden) {
       const heroBgEl = document.querySelector('#blader-profile-modal .profile-hero-bg');
@@ -2283,6 +2319,7 @@ function handleProfilePhotoUpload(input) {
 function clearProfilePhoto() {
   document.getElementById('pe-photo').value = '';
   document.getElementById('pe-photo-file').value = '';
+  document.getElementById('pe-photo-url').value = '';
   document.getElementById('pe-photo-preview').innerHTML = '👤';
   const bgHidden = document.getElementById('pe-bgphoto').value;
   if (!bgHidden) {
@@ -2299,11 +2336,11 @@ function handleBgPhotoUpload(input) {
   reader.onload = function(e) {
     const dataUrl = e.target.result;
     document.getElementById('pe-bgphoto').value = dataUrl;
+    document.getElementById('pe-bgphoto-url').value = '';
     const prev = document.getElementById('pe-bgphoto-preview');
     prev.style.backgroundImage = `url("${dataUrl}")`;
     prev.style.backgroundSize = 'cover';
     prev.style.backgroundPosition = 'center';
-    // live preview the hero bg
     const heroBgEl = document.querySelector('#blader-profile-modal .profile-hero-bg');
     heroBgEl.innerHTML = `<img src="${dataUrl}" crossorigin="anonymous" />`;
   };
@@ -2313,8 +2350,8 @@ function handleBgPhotoUpload(input) {
 function clearBgPhoto() {
   document.getElementById('pe-bgphoto').value = '';
   document.getElementById('pe-bgphoto-file').value = '';
+  document.getElementById('pe-bgphoto-url').value = '';
   document.getElementById('pe-bgphoto-preview').style.backgroundImage = '';
-  // fall back to player photo or gray
   const photo = document.getElementById('pe-photo').value;
   const heroBgEl = document.querySelector('#blader-profile-modal .profile-hero-bg');
   if (photo) {
@@ -2654,27 +2691,35 @@ applyHeroBgToPage();
           </div>
           <div class="profile-edit-field full">
             <label>Profile Photo</label>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+            <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
               <div id="pe-photo-preview" style="width:48px;height:48px;border-radius:50%;overflow:hidden;border:2px solid var(--border2);background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">👤</div>
-              <div style="flex:1">
-                <label style="display:inline-block;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 14px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);transition:border-color .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'">
-                  📂 Choose Photo
-                  <input type="file" id="pe-photo-file" accept="image/*" style="display:none" onchange="handleProfilePhotoUpload(this)" />
-                </label>
-                <button type="button" onclick="clearProfilePhoto()" style="margin-left:6px;background:transparent;border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:11px;color:var(--muted);cursor:pointer">✕ Clear</button>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+                <input type="text" id="pe-photo-url" placeholder="Paste image URL..." oninput="applyProfilePhotoFromUrl(this.value)"
+                  style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;width:100%" />
+                <div style="display:flex;gap:6px;align-items:center">
+                  <label style="display:inline-block;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">
+                    📂 Upload
+                    <input type="file" id="pe-photo-file" accept="image/*" style="display:none" onchange="handleProfilePhotoUpload(this)" />
+                  </label>
+                  <button type="button" onclick="clearProfilePhoto()" style="background:transparent;border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--muted);cursor:pointer">✕ Clear</button>
+                </div>
               </div>
             </div>
           </div>
           <div class="profile-edit-field full">
             <label>Background Photo</label>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
-              <div id="pe-bgphoto-preview" style="width:64px;height:36px;border-radius:6px;overflow:hidden;border:2px solid var(--border2);background:var(--surface2);flex-shrink:0"></div>
-              <div style="flex:1">
-                <label style="display:inline-block;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 14px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);transition:border-color .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'">
-                  🖼 Choose Background
-                  <input type="file" id="pe-bgphoto-file" accept="image/*" style="display:none" onchange="handleBgPhotoUpload(this)" />
-                </label>
-                <button type="button" onclick="clearBgPhoto()" style="margin-left:6px;background:transparent;border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:11px;color:var(--muted);cursor:pointer">✕ Clear</button>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+              <div id="pe-bgphoto-preview" style="width:56px;height:36px;border-radius:6px;border:2px solid var(--border2);background:var(--surface2);flex-shrink:0;background-size:cover;background-position:center"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+                <input type="text" id="pe-bgphoto-url" placeholder="Paste image URL..." oninput="applyBgPhotoFromUrl(this.value)"
+                  style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;width:100%" />
+                <div style="display:flex;gap:6px;align-items:center">
+                  <label style="display:inline-block;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:5px 12px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">
+                    🖼 Upload
+                    <input type="file" id="pe-bgphoto-file" accept="image/*" style="display:none" onchange="handleBgPhotoUpload(this)" />
+                  </label>
+                  <button type="button" onclick="clearBgPhoto()" style="background:transparent;border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:11px;color:var(--muted);cursor:pointer">✕ Clear</button>
+                </div>
               </div>
             </div>
           </div>
