@@ -1570,45 +1570,38 @@ async function confirmImport(labelEnc, resultsEnc, tournamentId) {
   let rank=1;
   players.forEach((p,i)=>{ if(i>0&&p.total<players[i-1].total) rank=i+1; p.rank=rank; });
 
-  // ── Fetch match data from Challonge and count 1v1 wins ──
-  if (tournamentId || selectedTournament?.url) {
+  // ── Read wins/losses/scores from Challonge match data ──
+  if ((tournamentId || selectedTournament?.url) && !importedTournamentIds.includes(String(tournamentId))) {
     try {
       const tid = selectedTournament?.url || tournamentId;
       const matchData = await fetchChallonge(`?action=matches&tournament_id=${encodeURIComponent(tid)}`);
       // Build participant id → player name map
       const pidMap = {};
       results.forEach(r => {
-        // currentParticipants still has the raw Challonge participant objects
         const cp = currentParticipants.find(p => (p.display_name||p.name||'').trim() === r.challongeName);
         if (cp) pidMap[cp.id] = r.matchedPlayer || r.challongeName;
       });
-      // Count wins, matches played, and match points via scores_csv
-      // scores_csv format: "p1score-p2score" e.g. "6-3" or "1-5"
-      const winCounts = {};
-      const matchCounts = {};
-      const matchPtCounts = {}; // total individual match points earned
+      // Count wins, losses, and match points from every completed match
+      const winCounts  = {};
+      const lossCounts = {};
+      const matchPtCounts = {};
       (matchData || []).forEach(m => {
         const match = m.match || m;
         if (match.state !== 'complete' || !match.winner_id) return;
         const winnerName = pidMap[match.winner_id];
-        const p1Name = pidMap[match.player1_id];
-        const p2Name = pidMap[match.player2_id];
-        if (winnerName) winCounts[winnerName] = (winCounts[winnerName] || 0) + 1;
-        if (p1Name) matchCounts[p1Name] = (matchCounts[p1Name] || 0) + 1;
-        if (p2Name) matchCounts[p2Name] = (matchCounts[p2Name] || 0) + 1;
-        // Parse scores_csv for per-match point totals
-        // Challonge scores_csv is ALWAYS "higher-lower" regardless of p1/p2 position
-        // So we assign higher score to winner, lower score to loser
-        if (match.scores_csv && p1Name && p2Name && winnerName) {
-          const loserName = (match.winner_id === match.player1_id) ? p2Name : p1Name;
+        const p1Name     = pidMap[match.player1_id];
+        const p2Name     = pidMap[match.player2_id];
+        const loserName  = match.winner_id === match.player1_id ? p2Name : p1Name;
+        if (winnerName) winCounts[winnerName]   = (winCounts[winnerName]  || 0) + 1;
+        if (loserName)  lossCounts[loserName]    = (lossCounts[loserName] || 0) + 1;
+        // scores_csv: Challonge always stores higher score first
+        if (match.scores_csv && winnerName && loserName) {
           let winnerPts = 0, loserPts = 0;
-          const sets = match.scores_csv.split(',');
-          sets.forEach(set => {
+          match.scores_csv.split(',').forEach(set => {
             const parts = set.trim().split('-');
             if (parts.length === 2) {
               const a = parseInt(parts[0]) || 0;
               const b = parseInt(parts[1]) || 0;
-              // scores_csv stores higher first — winner gets higher, loser gets lower
               winnerPts += Math.max(a, b);
               loserPts  += Math.min(a, b);
             }
@@ -1617,25 +1610,26 @@ async function confirmImport(labelEnc, resultsEnc, tournamentId) {
           matchPtCounts[loserName]  = (matchPtCounts[loserName]  || 0) + loserPts;
         }
       });
-      // Accumulate into bladerStats — only if not already imported
-      if (!importedTournamentIds.includes(String(tournamentId))) {
-        Object.entries(winCounts).forEach(([name, w]) => {
+      Object.entries(winCounts).forEach(([name, w]) => {
+        const st = ensureBladerStats(name);
+        st.wins          = (st.wins || 0) + w;
+        st.losses        = (st.losses || 0) + (lossCounts[name] || 0);
+        st.matchesPlayed = (st.matchesPlayed || 0) + w + (lossCounts[name] || 0);
+      });
+      // Also handle players who only have losses (no wins)
+      Object.entries(lossCounts).forEach(([name, l]) => {
+        if (!winCounts[name]) {
           const st = ensureBladerStats(name);
-          st.wins = (st.wins || 0) + w;
-        });
-        Object.entries(matchCounts).forEach(([name, m]) => {
-          const st = ensureBladerStats(name);
-          st.matchesPlayed = (st.matchesPlayed || 0) + m;
-        });
-        Object.entries(matchPtCounts).forEach(([name, pts]) => {
-          const st = ensureBladerStats(name);
-          st.matchPoints = (st.matchPoints || 0) + pts;
-        });
-        console.log('[Import] Win counts:', winCounts, '| Match pts:', matchPtCounts);
-      } else {
-        console.log('[Import] Skipping stat accumulation — tournament already imported.');
-      }
-    } catch(e) { console.warn('[Import] Could not fetch matches for win tracking:', e); }
+          st.losses        = (st.losses || 0) + l;
+          st.matchesPlayed = (st.matchesPlayed || 0) + l;
+        }
+      });
+      Object.entries(matchPtCounts).forEach(([name, pts]) => {
+        const st = ensureBladerStats(name);
+        st.matchPoints = (st.matchPoints || 0) + pts;
+      });
+      console.log('[Import] Wins:', winCounts, 'Losses:', lossCounts, 'Match pts:', matchPtCounts);
+    } catch(e) { console.warn('[Import] Could not fetch matches:', e); }
   }
 
   if (tournamentId && !importedTournamentIds.includes(String(tournamentId))) {
@@ -1944,21 +1938,20 @@ function computeBladerProfile(name) {
   const gamesTotal    = eventLabels.length;
   const attendRate    = gamesTotal > 0 ? ((eventsJoined / gamesTotal) * 100).toFixed(1) + '%' : '—';
   const rank          = players.indexOf(p) + 1;
-  // Win rate = Challonge 1v1 wins / total 1v1 matches played (Swiss + top cut)
   const wins           = st.wins || 0;
+  const losses         = st.losses || 0;
   const matchesPlayed  = st.matchesPlayed || 0;
   const matchPoints    = st.matchPoints || 0;
-  const winRate        = matchesPlayed > 0 ? ((wins / matchesPlayed) * 100).toFixed(1) + '%'
-                       : wins > 0 ? wins + 'W / ? matches' : '—';
+  // Match Win Rate = wins / (wins + losses)
+  const totalDecided   = wins + losses;
+  const winRate        = totalDecided > 0 ? ((wins / totalDecided) * 100).toFixed(1) + '%' : '—';
   // PPG = total match points earned ÷ total matches played (Swiss 0-6, Finals 0-9)
   // Falls back to season pts ÷ events if no match point data yet
   const ppg = matchesPlayed > 0 && matchPoints > 0
     ? (matchPoints / matchesPlayed).toFixed(2)
     : eventsJoined > 0 ? (p.total / eventsJoined).toFixed(2) : '0.00';
-  // MVP Score = season points per event attended
-  const mvpScore      = eventsJoined > 0 ? (p.total / eventsJoined).toFixed(2) : '0.00';
-  return { name, rank, total: p.total, gamesPlayed: matchesPlayed, eventsJoined, gamesTotal, attendRate, ppg, winRate, wins,
-           photo: st.photo||'', mvpScore,
+  return { name, rank, total: p.total, gamesPlayed: matchesPlayed, eventsJoined, gamesTotal, attendRate, ppg, winRate, wins, losses,
+           photo: st.photo||'',
            spinFinishes: st.spinFinishes||0, burstFinishes: st.burstFinishes||0,
            extremeFinishes: st.extremeFinishes||0 };
 }
@@ -1993,9 +1986,9 @@ function openBladerProfile(name) {
   modal.querySelector('#pc-ppg').textContent       = profile.ppg;
 
   // season stats rows
-  modal.querySelector('#ps-mvp').textContent       = profile.mvpScore;
   modal.querySelector('#ps-total').textContent     = profile.total;
   modal.querySelector('#ps-ppg').textContent       = profile.ppg;
+  modal.querySelector('#ps-record').textContent    = profile.wins + 'W – ' + profile.losses + 'L';
   modal.querySelector('#ps-games').textContent     = profile.gamesPlayed;
   modal.querySelector('#ps-attend').textContent    = profile.eventsJoined + ' / ' + profile.gamesTotal;
   modal.querySelector('#ps-spin').textContent      = profile.spinFinishes;
@@ -2011,11 +2004,10 @@ function openBladerProfile(name) {
   modal.querySelector('#pe-extreme').value     = '';
   modal.querySelector('#pe-current-totals').textContent =
     `Current totals → Spin: ${st.spinFinishes||0}  Burst: ${st.burstFinishes||0}  Extreme: ${st.extremeFinishes||0}`;
-  const mpLabel = st.matchPoints > 0 ? ` / ${st.matchPoints} match pts` : '';
   modal.querySelector('#pe-wins-display').textContent =
-    `Current: ${st.wins||0} wins / ${st.matchesPlayed||0} matches played${mpLabel}`;
+    `Tracked: ${st.wins||0}W – ${st.losses||0}L / ${st.matchPoints||0} match pts`;
   modal.querySelector('#pe-wins-input').value      = '';
-  modal.querySelector('#pe-matches-input').value   = '';
+  modal.querySelector('#pe-losses-input').value    = '';
   modal.querySelector('#pe-matchpts-input').value  = '';
 
   document.getElementById('blader-profile-modal').classList.add('open');
@@ -2043,18 +2035,20 @@ function saveBladerProfile() {
   st.burstFinishes   = (st.burstFinishes||0)   + addBurst;
   st.extremeFinishes = (st.extremeFinishes||0) + addExtreme;
   // wins/matches OVERRIDE (only if a value was entered)
-  const winsOverride   = document.getElementById('pe-wins-input').value.trim();
-  const matchOverride  = document.getElementById('pe-matches-input').value.trim();
+  const winsOverride    = document.getElementById('pe-wins-input').value.trim();
+  const lossesOverride  = document.getElementById('pe-losses-input').value.trim();
   const matchPtsOverride = document.getElementById('pe-matchpts-input').value.trim();
-  if (winsOverride    !== '') st.wins          = parseInt(winsOverride)    || 0;
-  if (matchOverride   !== '') st.matchesPlayed = parseInt(matchOverride)   || 0;
-  if (matchPtsOverride !== '') st.matchPoints  = parseInt(matchPtsOverride) || 0;
+  if (winsOverride    !== '') st.wins   = parseInt(winsOverride)    || 0;
+  if (lossesOverride  !== '') st.losses = parseInt(lossesOverride)  || 0;
+  if (matchPtsOverride !== '') st.matchPoints = parseInt(matchPtsOverride) || 0;
+  // Always recompute matchesPlayed from wins+losses
+  st.matchesPlayed = (st.wins || 0) + (st.losses || 0);
   // clear inputs
   document.getElementById('pe-spin').value           = '';
   document.getElementById('pe-burst').value          = '';
   document.getElementById('pe-extreme').value        = '';
   document.getElementById('pe-wins-input').value     = '';
-  document.getElementById('pe-matches-input').value  = '';
+  document.getElementById('pe-losses-input').value   = '';
   document.getElementById('pe-matchpts-input').value = '';
   cloudSave();
   openBladerProfile(name);
@@ -2290,7 +2284,7 @@ applyHeroBgToPage();
       <div class="profile-stat-cards">
         <div class="profile-stat-card highlight">
           <span class="psv" id="pc-winrate">—</span>
-          <span class="psl">Win Rate</span>
+          <span class="psl">Match Win Rate</span>
         </div>
         <div class="profile-stat-card">
           <span class="psv" id="pc-rank">—</span>
@@ -2304,9 +2298,9 @@ applyHeroBgToPage();
 
       <!-- Season Statistics -->
       <div class="profile-section-title">Season Statistics</div>
-      <div class="profile-stat-row"><span class="label">MVP Score</span><span class="value" id="ps-mvp">0</span></div>
       <div class="profile-stat-row"><span class="label">Total Points</span><span class="value" id="ps-total">0</span></div>
-      <div class="profile-stat-row"><span class="label">Points Per Game (PPG) <span style="font-size:10px;color:var(--muted)">(match pts ÷ matches)</span></span><span class="value" id="ps-ppg">0</span></div>
+      <div class="profile-stat-row"><span class="label">Points Per Game (PPG)</span><span class="value" id="ps-ppg">0</span></div>
+      <div class="profile-stat-row"><span class="label">Match Record</span><span class="value" id="ps-record">—</span></div>
       <div class="profile-stat-row"><span class="label">Challonge Matches (1v1)</span><span class="value" id="ps-games">0</span></div>
       <div class="profile-stat-row"><span class="label">Events Joined</span><span class="value" id="ps-attend">—</span></div>
       <div class="profile-stat-row"><span class="label">Spin Finishes</span><span class="value" id="ps-spin">0</span></div>
@@ -2342,20 +2336,19 @@ applyHeroBgToPage();
             <input type="number" id="pe-extreme" placeholder="0" min="0" />
           </div>
         </div>
-        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">⚔️ Match Record (Swiss + Top Cut)</div>
-        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px">Auto-tracked on import. Edit here to fix old/missing data.</div>
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">⚔️ Match Record Override</div>
         <div id="pe-wins-display" style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted2);padding:2px 0 8px"></div>
         <div class="profile-edit-grid">
           <div class="profile-edit-field">
-            <label>Total Wins (override)</label>
+            <label>Wins</label>
             <input type="number" id="pe-wins-input" placeholder="leave blank = keep" min="0" />
           </div>
           <div class="profile-edit-field">
-            <label>Total Matches (override)</label>
-            <input type="number" id="pe-matches-input" placeholder="leave blank = keep" min="0" />
+            <label>Losses</label>
+            <input type="number" id="pe-losses-input" placeholder="leave blank = keep" min="0" />
           </div>
           <div class="profile-edit-field full">
-            <label>Total Match Points (override) <span style="color:var(--muted);font-size:10px">— used for PPG</span></label>
+            <label>Total Match Points <span style="color:var(--muted);font-size:10px">— used for PPG</span></label>
             <input type="number" id="pe-matchpts-input" placeholder="leave blank = keep" min="0" />
           </div>
         </div>
