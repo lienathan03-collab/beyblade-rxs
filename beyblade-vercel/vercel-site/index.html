@@ -1103,6 +1103,7 @@ function loadSavedPhotos() {
   cloudLoad();
 }
 
+const DEFAULT_CARD_BG = 'https://i.imgur.com/b7lN1X5.jpg';
 function applyPodiumPhotos() {
   [1,2,3].forEach(n => {
     const url = podiumPhotos[n];
@@ -1111,13 +1112,9 @@ function applyPodiumPhotos() {
     const bgEl = document.getElementById(bgId);
     const noPhotoEl = document.querySelector('#'+cardId+' .podium-no-photo');
     if (!bgEl) return;
-    if (url) {
-      bgEl.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentElement.innerHTML=\'\';document.querySelector(\'#'+cardId+' .podium-no-photo\').style.display=\'flex\';" />';
-      if (noPhotoEl) noPhotoEl.style.display = 'none';
-    } else {
-      bgEl.innerHTML = '';
-      if (noPhotoEl) noPhotoEl.style.display = 'flex';
-    }
+    const imgUrl = url || DEFAULT_CARD_BG;
+    bgEl.innerHTML = '<img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" onerror="this.parentElement.innerHTML=\'\';" />';
+    if (noPhotoEl) noPhotoEl.style.display = 'none';
   });
 }
 
@@ -2170,8 +2167,8 @@ function openBladerProfile(name) {
   const rankEmoji = profile.rank===1?'👑':profile.rank===2?'🥈':profile.rank===3?'🥉':'';
 
   const modal = document.getElementById('blader-profile-modal');
-  const DEFAULT_PROFILE_BG = 'https://scontent.filo1-1.fna.fbcdn.net/v/t39.30808-6/486746811_23893724073553099_578067997620602988_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=zBSJ9tDvSnYQ7kNvwFWNCtJ&_nc_oc=AdqnLE6uZThOJ24K8pUVl9YHK_nsf4L_-wuFomLt5YyXl5raYKs56pCpJyG0OFzjZIY&_nc_zt=23&_nc_ht=scontent.filo1-1.fna&_nc_gid=y9gYf7krj6yiwpwxfDV3-Q&_nc_ss=7a389&oh=00_Af0PVKPXDtvDXgES_PwkBCh1OWfFh84LXBQ4e6VCIO5tnw&oe=69ED2F7F';
-  modal.querySelector('.profile-hero-bg').style.backgroundImage = `url('${profile.photo || DEFAULT_PROFILE_BG}')`;
+  const DEFAULT_PROFILE_BG = 'https://i.imgur.com/b7lN1X5.jpg';
+  modal.querySelector('.profile-hero-bg').style.backgroundImage = `url('${DEFAULT_PROFILE_BG}')`;
   modal.querySelector('.profile-hero-bg').style.background = '';
 
   const av = modal.querySelector('.profile-avatar');
