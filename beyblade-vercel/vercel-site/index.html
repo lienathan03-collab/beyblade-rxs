@@ -53,33 +53,27 @@
   .nav-login-hint:hover { color: var(--muted); }
 
   /* HERO */
-  .hero {
-    position: relative; overflow: hidden;
-    border-bottom: 1px solid var(--border);
-  }
-  /* Background image area */
+  .hero { border-bottom: 1px solid var(--border); }
   .hero-bg-area {
-    background: var(--surface2) center center / cover no-repeat;
-    min-height: 220px; position: relative; overflow: hidden;
+    min-height: 200px; background: var(--surface2) center center / cover no-repeat;
+    position: relative; overflow: hidden;
   }
   .hero-bg-area::before {
     content: ''; position: absolute; inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.65) 100%);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%);
     pointer-events: none;
   }
-  /* Edit button for hero bg (admin only) */
   .hero-bg-edit-btn {
     position: absolute; top: 12px; right: 14px; z-index: 4;
-    background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 8px; padding: 6px 12px; font-size: 13px;
-    cursor: pointer; display: none; color: #fff;
-    font-family: 'Rajdhani', sans-serif; font-weight: 600; letter-spacing: 1px;
+    background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px; padding: 6px 14px; font-size: 12px; cursor: pointer;
+    display: none; color: #fff; font-family: 'Rajdhani', sans-serif;
+    font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
   }
   .admin-active .hero-bg-edit-btn { display: block; }
-  /* Stats bar below the image */
   .hero-stats-bar {
     background: var(--surface); border-top: 1px solid var(--border);
-    padding: 18px 32px 14px; text-align: center;
+    padding: 20px 32px 16px; text-align: center;
   }
   .hero-sub { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
   .hero-stats { display: flex; justify-content: center; gap: 40px; margin-bottom: 4px; }
@@ -372,7 +366,7 @@
 
   @media (max-width: 700px) {
     header { padding: 0 16px; }
-    .hero-bg-area { min-height: 160px !important; }
+    .hero-bg-area { min-height: 130px !important; }
     .hero-stats-bar { padding: 14px 16px 12px; }
     .hero-stats { gap: 20px; }
     .section { padding: 20px 16px; }
@@ -454,32 +448,18 @@
 </header>
 
 <div class="hero">
-  <!-- Background image area (editable by admin) -->
   <div class="hero-bg-area" id="hero-bg-area">
     <button class="hero-bg-edit-btn" onclick="openHeroBgModal()">🖼 Edit Background</button>
   </div>
-  <!-- Stats bar below the background -->
   <div class="hero-stats-bar">
     <div class="hero-stats">
-      <div class="hero-stat">
-        <span class="n" id="stat-bladers">0</span>
-        <span class="l">Bladers</span>
-      </div>
+      <div class="hero-stat"><span class="n" id="stat-bladers">0</span><span class="l">Bladers</span></div>
       <div class="hero-divider"></div>
-      <div class="hero-stat">
-        <span class="n" id="stat-events">0</span>
-        <span class="l">Events</span>
-      </div>
+      <div class="hero-stat"><span class="n" id="stat-events">0</span><span class="l">Events</span></div>
       <div class="hero-divider"></div>
-      <div class="hero-stat">
-        <span class="n" id="stat-ranks">0</span>
-        <span class="l">Ranks</span>
-      </div>
+      <div class="hero-stat"><span class="n" id="stat-ranks">0</span><span class="l">Ranks</span></div>
       <div class="hero-divider"></div>
-      <div class="hero-stat">
-        <span class="n" id="topScore">0</span>
-        <span class="l">Top Score</span>
-      </div>
+      <div class="hero-stat"><span class="n" id="topScore">0</span><span class="l">Top Score</span></div>
     </div>
     <div class="hero-sub">Roxas City Community · Season Rankings</div>
   </div>
@@ -752,23 +732,20 @@
   </div>
 </div>
 
-<!-- ══════════════ HERO BG EDIT MODAL ══════════════ -->
+<!-- ══════════════ HERO BG MODAL ══════════════ -->
 <div class="modal-overlay" id="herobg-modal">
   <div class="modal" style="max-width:420px">
     <button class="modal-close" onclick="closeHeroBgModal()">✕</button>
     <div class="modal-title">Edit Hero Background</div>
-    <div class="modal-sub">Paste a direct image URL to use as the site banner background.</div>
-    <div class="photo-url-note">💡 Tip: On Facebook, right-click a photo → "Open image in new tab" → copy the URL from the address bar.</div>
-    <!-- Preview -->
-    <div id="herobg-preview" style="width:100%;height:120px;border-radius:10px;background:var(--surface2);border:1px solid var(--border2);margin-bottom:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-      <span style="font-size:32px;opacity:0.3">🖼</span>
-    </div>
+    <div class="modal-sub">Paste a direct image URL to use as the banner background.</div>
+    <div class="photo-url-note">💡 Tip: On Facebook, right-click photo → "Open image in new tab" → copy that URL.</div>
+    <div id="herobg-preview" style="width:100%;height:120px;border-radius:10px;background:var(--surface2);border:1px solid var(--border2);margin-bottom:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;"><span style="font-size:32px;opacity:0.3">🖼</span></div>
     <div class="form-group">
       <label class="form-label">Background Image URL</label>
       <input class="form-input" type="text" id="herobg-url-input" placeholder="https://..." oninput="previewHeroBg(this.value)" />
     </div>
     <div class="modal-actions" style="margin-top:8px">
-      <button class="btn primary" style="flex:1" onclick="applyHeroBg()">✅ Apply Background</button>
+      <button class="btn primary" style="flex:1" onclick="applyHeroBg()">✅ Apply</button>
       <button class="btn danger" onclick="clearHeroBg()">🗑 Clear</button>
       <button class="btn" onclick="closeHeroBgModal()">Cancel</button>
     </div>
@@ -941,47 +918,80 @@ function applyAdminUI() {
 //  Sign up free at jsonbin.io → API Keys → Create key
 //  Then create a bin and paste the BIN_ID + API_KEY below
 // ═══════════════════════════════════════════════════════
-const JSONBIN_BIN_ID = 'PASTE_YOUR_BIN_ID_HERE';
-const JSONBIN_API_KEY = 'PASTE_YOUR_API_KEY_HERE';
+const JSONBIN_BIN_ID = '69e710a6856a682189572298';
+const JSONBIN_API_KEY = '$2a$10$1AXf1zIYzI.Pf4wVN148oO8iMGwRvpkGI8pwJfeD8PjtX4qM8tuki';
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
 let cloudSaveTimeout = null;
 
+// ── localStorage fallback ──
+const LS_KEY = 'beyblade_rxs_data';
+function localSave() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ photos: podiumPhotos, heroBgUrl: heroBgUrl||'', players, eventLabels, importedIds: importedTournamentIds })); } catch(e) {}
+}
+function localLoad() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (d.photos)      { podiumPhotos = d.photos; applyPodiumPhotos(); }
+    if (d.heroBgUrl !== undefined) { heroBgUrl = d.heroBgUrl; applyHeroBgToPage(); }
+    if (d.players)     { players = d.players; }
+    if (d.eventLabels) { eventLabels = d.eventLabels; }
+    if (d.importedIds) { importedTournamentIds = d.importedIds; }
+    renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
+    return true;
+  } catch(e) { return false; }
+}
+
 async function cloudLoad() {
-  if (!JSONBIN_BIN_ID || JSONBIN_BIN_ID === 'PASTE_YOUR_BIN_ID_HERE') return;
+  // Show local data immediately while cloud loads
+  localLoad();
   try {
     const res = await fetch(JSONBIN_URL + '/latest', {
-      headers: { 'X-Master-Key': JSONBIN_API_KEY }
+      headers: { 'X-Master-Key': JSONBIN_API_KEY, 'X-Bin-Meta': 'false' }
     });
-    if (!res.ok) return;
-    const json = await res.json();
-    const data = json.record;
-    if (data.photos) { podiumPhotos = data.photos; applyPodiumPhotos(); }
+    if (!res.ok) {
+      console.error('[JSONBin] Load failed:', res.status, await res.text());
+      showToast('⚠️ Cloud load failed (' + res.status + ')', 'error');
+      return;
+    }
+    const data = await res.json();
+    console.log('[JSONBin] Loaded:', data);
+    if (data.photos)      { podiumPhotos = data.photos; applyPodiumPhotos(); }
     if (data.heroBgUrl !== undefined) { heroBgUrl = data.heroBgUrl; applyHeroBgToPage(); }
-    if (data.players) { players = data.players; }
+    if (data.players)     { players = data.players; }
     if (data.eventLabels) { eventLabels = data.eventLabels; }
     if (data.importedIds) { importedTournamentIds = data.importedIds; }
     renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
-  } catch(e) { console.warn('Cloud load failed:', e); }
+    localSave(); // mirror to localStorage
+  } catch(e) { console.error('[JSONBin] Load error:', e); }
 }
 
 async function cloudSave() {
-  if (!JSONBIN_BIN_ID || JSONBIN_BIN_ID === 'PASTE_YOUR_BIN_ID_HERE') return;
+  localSave(); // always save locally first
   clearTimeout(cloudSaveTimeout);
   cloudSaveTimeout = setTimeout(async () => {
     try {
-      await fetch(JSONBIN_URL, {
+      const payload = {
+        photos: podiumPhotos,
+        heroBgUrl: heroBgUrl || '',
+        players: players,
+        eventLabels: eventLabels,
+        importedIds: importedTournamentIds
+      };
+      const res = await fetch(JSONBIN_URL, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
-        body: JSON.stringify({
-          photos: podiumPhotos,
-          heroBgUrl: heroBgUrl,
-          players: players,
-          eventLabels: eventLabels,
-          importedIds: importedTournamentIds
-        })
+        body: JSON.stringify(payload)
       });
-    } catch(e) { console.warn('Cloud save failed:', e); }
+      if (!res.ok) {
+        console.error('[JSONBin] Save failed:', res.status, await res.text());
+        showToast('⚠️ Cloud save failed (' + res.status + ')', 'error');
+      } else {
+        console.log('[JSONBin] Saved OK');
+      }
+    } catch(e) { console.error('[JSONBin] Save error:', e); }
   }, 800);
 }
 
@@ -1058,9 +1068,7 @@ function clearPhotos() {
   showToast('Photos cleared.', '');
 }
 
-// ═══════════════════════════════════════════════════════
-//  HERO BACKGROUND MANAGEMENT
-// ═══════════════════════════════════════════════════════
+// ── HERO BACKGROUND ──
 function applyHeroBgToPage() {
   const el = document.getElementById('hero-bg-area');
   if (!el) return;
@@ -1069,10 +1077,9 @@ function applyHeroBgToPage() {
     el.style.minHeight = '240px';
   } else {
     el.style.backgroundImage = '';
-    el.style.minHeight = '220px';
+    el.style.minHeight = '200px';
   }
 }
-
 function openHeroBgModal() {
   if (!isAdmin) return;
   document.getElementById('herobg-url-input').value = heroBgUrl || '';
@@ -1081,24 +1088,22 @@ function openHeroBgModal() {
   setTimeout(() => document.getElementById('herobg-url-input').focus(), 150);
 }
 function closeHeroBgModal() { document.getElementById('herobg-modal').classList.remove('open'); }
-
 function previewHeroBg(url) {
   const wrap = document.getElementById('herobg-preview');
+  if (!wrap) return;
   if (url && url.startsWith('http')) {
-    wrap.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML=\'<span style=\'font-size:32px;opacity:0.3\'>❌</span>\'" />';
+    wrap.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />';
   } else {
     wrap.innerHTML = '<span style="font-size:32px;opacity:0.3">🖼</span>';
   }
 }
-
 function applyHeroBg() {
   heroBgUrl = document.getElementById('herobg-url-input').value.trim();
   applyHeroBgToPage();
   cloudSave();
   closeHeroBgModal();
-  showToast('Hero background updated!', 'success');
+  showToast('Background updated!', 'success');
 }
-
 function clearHeroBg() {
   heroBgUrl = '';
   document.getElementById('herobg-url-input').value = '';
