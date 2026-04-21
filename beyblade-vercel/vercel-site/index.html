@@ -1866,10 +1866,11 @@ function computeBladerProfile(name) {
   const attendRate    = gamesTotal > 0 ? ((eventsJoined / gamesTotal) * 100).toFixed(1) + '%' : '—';
   const ppg           = eventsJoined > 0 ? (p.total / eventsJoined).toFixed(2) : '0.00';
   const rank          = players.indexOf(p) + 1;
-  // Win rate = Challonge 1v1 wins / total 1v1 matches played
+  // Win rate = Challonge 1v1 wins / total 1v1 matches played (Swiss + top cut)
   const wins           = st.wins || 0;
   const matchesPlayed  = st.matchesPlayed || 0;
-  const winRate        = matchesPlayed > 0 ? ((wins / matchesPlayed) * 100).toFixed(1) + '%' : '0.0%';
+  const winRate        = matchesPlayed > 0 ? ((wins / matchesPlayed) * 100).toFixed(1) + '%'
+                       : wins > 0 ? wins + 'W / ? matches' : '—';
   // MVP Score = average points per attended event (auto-computed)
   const mvpScore      = eventsJoined > 0 ? (p.total / eventsJoined).toFixed(2) : '0.00';
   return { name, rank, total: p.total, gamesPlayed: matchesPlayed, eventsJoined, gamesTotal, attendRate, ppg, winRate, wins,
@@ -1927,7 +1928,9 @@ function openBladerProfile(name) {
   modal.querySelector('#pe-current-totals').textContent =
     `Current totals → Spin: ${st.spinFinishes||0}  Burst: ${st.burstFinishes||0}  Extreme: ${st.extremeFinishes||0}`;
   modal.querySelector('#pe-wins-display').textContent =
-    `${st.wins||0} wins tracked from Challonge`;
+    `Current: ${st.wins||0} wins / ${st.matchesPlayed||0} matches played`;
+  modal.querySelector('#pe-wins-input').value   = '';
+  modal.querySelector('#pe-matches-input').value = '';
 
   document.getElementById('blader-profile-modal').classList.add('open');
 }
@@ -1944,22 +1947,29 @@ function saveBladerProfile() {
   const name = document.getElementById('pe-name').value;
   if (!name) return;
   const st = ensureBladerStats(name);
-  // photo just sets/replaces
+  // photo sets/replaces
   st.photo = document.getElementById('pe-photo').value.trim();
-  // finishes ACCUMULATE — add the new values to existing totals
+  // finishes ACCUMULATE — add new values to existing totals
   const addSpin    = parseInt(document.getElementById('pe-spin').value)||0;
   const addBurst   = parseInt(document.getElementById('pe-burst').value)||0;
   const addExtreme = parseInt(document.getElementById('pe-extreme').value)||0;
   st.spinFinishes    = (st.spinFinishes||0)    + addSpin;
   st.burstFinishes   = (st.burstFinishes||0)   + addBurst;
   st.extremeFinishes = (st.extremeFinishes||0) + addExtreme;
-  // clear the input boxes after adding so admin doesn't double-add
-  document.getElementById('pe-spin').value    = '';
-  document.getElementById('pe-burst').value   = '';
-  document.getElementById('pe-extreme').value = '';
+  // wins/matches OVERRIDE (only if a value was entered)
+  const winsOverride   = document.getElementById('pe-wins-input').value.trim();
+  const matchOverride  = document.getElementById('pe-matches-input').value.trim();
+  if (winsOverride   !== '') st.wins          = parseInt(winsOverride)  || 0;
+  if (matchOverride  !== '') st.matchesPlayed = parseInt(matchOverride) || 0;
+  // clear inputs
+  document.getElementById('pe-spin').value           = '';
+  document.getElementById('pe-burst').value          = '';
+  document.getElementById('pe-extreme').value        = '';
+  document.getElementById('pe-wins-input').value     = '';
+  document.getElementById('pe-matches-input').value  = '';
   cloudSave();
-  openBladerProfile(name); // refresh display
-  showToast(`Added: ${addSpin} spin, ${addBurst} burst, ${addExtreme} extreme finishes!`, 'success');
+  openBladerProfile(name);
+  showToast(`Saved! +${addSpin} spin, +${addBurst} burst, +${addExtreme} extreme`, 'success');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2141,9 +2151,20 @@ applyHeroBgToPage();
             <input type="number" id="pe-extreme" placeholder="0" min="0" />
           </div>
         </div>
-        <div style="font-size:10px;color:var(--muted2);margin:6px 0 2px">🏆 Challonge 1v1 Wins (auto-tracked on import)</div>
-        <div id="pe-wins-display" style="font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--green);padding:4px 0"></div>
-        <button class="btn primary" style="width:100%;margin-top:12px" onclick="saveBladerProfile()">➕ Add These Finishes</button>
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">⚔️ Match Record (Swiss + Top Cut)</div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:8px">Auto-tracked on import. Edit here to fix old/missing data.</div>
+        <div id="pe-wins-display" style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted2);padding:2px 0 8px"></div>
+        <div class="profile-edit-grid">
+          <div class="profile-edit-field">
+            <label>Total Wins (override)</label>
+            <input type="number" id="pe-wins-input" placeholder="leave blank = keep" min="0" />
+          </div>
+          <div class="profile-edit-field">
+            <label>Total Matches (override)</label>
+            <input type="number" id="pe-matches-input" placeholder="leave blank = keep" min="0" />
+          </div>
+        </div>
+        <button class="btn primary" style="width:100%;margin-top:12px" onclick="saveBladerProfile()">💾 Save All Changes</button>
       </div>
 
     </div>
