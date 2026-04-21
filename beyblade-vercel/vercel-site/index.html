@@ -1215,26 +1215,68 @@ async function fetchChallonge(query) {
   return data;
 }
 
-// ── Fuzzy name matching ──
+// ── Name matching ──
+// Challonge names with "/" mean "either name works" e.g. "NONOY X / NOY MAHAW!"
+// Strategy: exact match first, then slash-alias match, then NO fuzzy guessing on short tokens
 function findPlayerByName(challongeName) {
   const cn = challongeName.toLowerCase().trim();
+
+  // 1. Exact match
   let found = players.find(p => p.name.toLowerCase() === cn);
   if (found) return found;
-  found = players.find(p => p.name.toLowerCase().includes(cn));
-  if (found) return found;
-  found = players.find(p => cn.includes(p.name.toLowerCase()));
-  if (found) return found;
-  const firstToken = cn.split(/[\s\/]+/)[0];
-  if (firstToken.length > 2) {
-    found = players.find(p => p.name.toLowerCase().startsWith(firstToken));
+
+  // 2. Challonge name contains "/" — try each part as an alias against all player names/aliases
+  const challongeAliases = cn.split(/\s*\/\s*/).map(s => s.trim()).filter(Boolean);
+
+  // 3. Player name contains "/" — expand player aliases too
+  // For each player, build their alias list from their name split by "/"
+  for (const alias of challongeAliases) {
+    if (alias.length < 2) continue;
+    found = players.find(p => {
+      const playerAliases = p.name.toLowerCase().split(/\s*\/\s*/).map(s => s.trim());
+      return playerAliases.some(pa => pa === alias);
+    });
     if (found) return found;
   }
-  const cnTokens = cn.split(/[\s\.\-\/]+/).filter(t => t.length > 2);
-  found = players.find(p => {
-    const pTokens = p.name.toLowerCase().split(/[\s\.\-\/]+/);
-    return cnTokens.some(ct => pTokens.some(pt => pt === ct || pt.startsWith(ct) || ct.startsWith(pt)));
-  });
-  return found || null;
+
+  // 4. Challonge name is contained exactly within a player name (or vice versa) — only if long enough
+  if (cn.length >= 4) {
+    found = players.find(p => p.name.toLowerCase() === cn);
+    if (found) return found;
+    // Check if challonge name matches any player alias exactly
+    found = players.find(p => {
+      const playerAliases = p.name.toLowerCase().split(/\s*\/\s*/).map(s => s.trim());
+      return playerAliases.some(pa => pa === cn);
+    });
+    if (found) return found;
+  }
+
+  // 5. Dot-separated: "ZPC.JUANDER" → try "zpc.juander" vs player names as-is
+  // Also try stripping dots: "ZPC.JUANDER" → "zpcjuander"
+  const cnNoDots = cn.replace(/\./g, '');
+  if (cnNoDots !== cn && cnNoDots.length >= 4) {
+    found = players.find(p => {
+      const pAliases = p.name.toLowerCase().split(/\s*\/\s*/).map(s => s.trim());
+      return pAliases.some(pa => pa.replace(/\./g, '') === cnNoDots);
+    });
+    if (found) return found;
+  }
+
+  // 6. Last resort: full name starts-with match — only if the match is SPECIFIC enough
+  // Require at least 6 chars to avoid "vg" matching "vg.xuyapos" wrongly for "vg. ms. lyn"
+  const cnClean = cn.replace(/[^a-z0-9]/g, '');
+  if (cnClean.length >= 5) {
+    found = players.find(p => {
+      const pAliases = p.name.toLowerCase().split(/\s*\/\s*/).map(s => s.trim());
+      return pAliases.some(pa => {
+        const paClean = pa.replace(/[^a-z0-9]/g, '');
+        return paClean === cnClean || paClean.startsWith(cnClean) || cnClean.startsWith(paClean);
+      });
+    });
+    if (found) return found;
+  }
+
+  return null;
 }
 
 // ── PUBLIC VIEW: auto-load best tournament ──
