@@ -583,7 +583,6 @@
   <span class="admin-bar-text">ADMIN MODE — Changes are live. Viewers see Challonge results only.</span>
   <div class="admin-bar-actions">
     <button class="btn primary" style="font-size:11px;padding:5px 12px;" onclick="adminManualSave()">💾 Save Changes</button>
-    <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openBulkAddModal()">➕ Add Players</button>
     <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openPhotoModal()">📸 Edit Podium Photos</button>
     <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openHeroBgModal()">🖼 Edit Background</button>
     <button class="btn danger" style="font-size:11px;padding:5px 12px;" onclick="openResetModal()">🗑 Reset Data</button>
@@ -1114,11 +1113,7 @@ function loadSavedPhotos() {
 const DEFAULT_CARD_BG = 'https://i.imgur.com/0KtgsFq.png';
 function applyPodiumPhotos() {
   [1,2,3].forEach(n => {
-    // Manual override first, then auto from player profile photo
-    const playerIdx = n - 1;
-    const playerName = players[playerIdx]?.name;
-    const autoPhoto = playerName ? (getBladerStats(playerName).photo || '') : '';
-    const url = podiumPhotos[n] || autoPhoto;
+    const url = podiumPhotos[n];
     const bgId = n===1?'bg-1st':n===2?'bg-2nd':'bg-3rd';
     const cardId = n===1?'card-1st':n===2?'card-2nd':'card-3rd';
     const bgEl = document.getElementById(bgId);
@@ -1904,8 +1899,6 @@ function updateHeroStats() {
     if(el) el.textContent = players[i]?.name || '—';
     if(ep) ep.textContent = players[i]?.total || 0;
   });
-  // Auto-refresh podium photos from player profile photos
-  applyPodiumPhotos();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2016,18 +2009,8 @@ function renderAchievements() {
 
   // ── Render ──
   grid.innerHTML = allAchs.map(a => {
-    // Auto-find player photo: check if holder starts with a known player name
-    let autoPhoto = a.photo || '';
-    if (!autoPhoto) {
-      // holder format is usually "PLAYERNAME — X pts" — extract the name part
-      const holderName = (a.holder || '').split(/\s*[—–-]\s*/)[0].trim();
-      // Try exact match first, then partial
-      const matchedPlayer = players.find(p => p.name.toLowerCase() === holderName.toLowerCase())
-        || players.find(p => holderName.toLowerCase().startsWith(p.name.toLowerCase()));
-      if (matchedPlayer) autoPhoto = getBladerStats(matchedPlayer.name).photo || '';
-    }
-    const photoHtml = autoPhoto
-      ? `<img src="${autoPhoto}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border2)" onerror="this.style.display='none';this.nextSibling.style.display='flex'" /><div class="ach-icon" style="display:none">${a.icon||'🏆'}</div>`
+    const photoHtml = a.photo
+      ? `<img src="${a.photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border2)" onerror="this.style.display='none'" />`
       : `<div class="ach-icon">${a.icon||'🏆'}</div>`;
     const safeKey = JSON.stringify(a._manual ? null : (a._autoKey || '')).replace(/"/g, '&quot;');
     const editBtn = a._manual
@@ -2612,86 +2595,6 @@ updateHeroStats();
 renderAchievements();
 loadSavedPhotos();
 applyHeroBgToPage();
-
-// ═══════════════════════════════════════════════════════
-//  BULK ADD PLAYERS
-// ═══════════════════════════════════════════════════════
-function openBulkAddModal() {
-  if (!isAdmin) return;
-  document.getElementById('bulk-names-input').value = '';
-  document.getElementById('bulk-preview').style.display = 'none';
-  document.getElementById('bulk-preview-list').innerHTML = '';
-  document.getElementById('bulk-add-error').textContent = '';
-  document.getElementById('bulk-add-modal').classList.add('open');
-  setTimeout(() => document.getElementById('bulk-names-input').focus(), 150);
-}
-function closeBulkAddModal() { document.getElementById('bulk-add-modal').classList.remove('open'); }
-
-document.addEventListener('DOMContentLoaded', () => {
-  const textarea = document.getElementById('bulk-names-input');
-  if (textarea) {
-    textarea.addEventListener('input', previewBulkAdd);
-  }
-});
-
-function previewBulkAdd() {
-  const raw = document.getElementById('bulk-names-input').value;
-  const names = raw.split('\n').map(s => s.trim()).filter(Boolean);
-  const previewEl = document.getElementById('bulk-preview');
-  const listEl = document.getElementById('bulk-preview-list');
-  if (!names.length) { previewEl.style.display = 'none'; return; }
-  previewEl.style.display = 'block';
-  listEl.innerHTML = names.map(name => {
-    const exists = players.find(p => p.name.toLowerCase() === name.toLowerCase());
-    const team = (() => {
-      const keys = Object.keys(teamConfig).filter(k => k !== 'Independent');
-      for (const k of keys) { if (name.startsWith(k)) return k; }
-      return '';
-    })();
-    const cfg = teamConfig[team];
-    const color = cfg ? cfg.color : '#888';
-    const tagHtml = team ? `<span style="font-size:10px;padding:1px 6px;border-radius:3px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${color};background:${color}22;border:0.5px solid ${color}55;margin-left:6px">${team}</span>` : '';
-    const badge = exists
-      ? `<span style="font-size:10px;color:var(--gold);margin-left:6px">⚠ already exists</span>`
-      : `<span style="font-size:10px;color:var(--green);margin-left:6px">✓ new</span>`;
-    return `<div style="display:flex;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px;font-family:'Share Tech Mono',monospace">
-      <span style="color:var(--text)">${name}</span>${tagHtml}${badge}
-    </div>`;
-  }).join('');
-}
-
-function executeBulkAdd() {
-  const raw = document.getElementById('bulk-names-input').value;
-  const names = raw.split('\n').map(s => s.trim()).filter(Boolean);
-  const errEl = document.getElementById('bulk-add-error');
-  if (!names.length) { errEl.textContent = 'Enter at least one name.'; return; }
-
-  let added = 0, skipped = 0;
-  names.forEach(name => {
-    if (players.find(p => p.name.toLowerCase() === name.toLowerCase())) { skipped++; return; }
-    players.push({
-      no: players.length + 1,
-      name: name,
-      scores: new Array(eventLabels.length).fill(0),
-      total: 0,
-      rank: players.length + 1
-    });
-    added++;
-  });
-
-  // Re-sort and re-rank
-  players.sort((a, b) => b.total - a.total);
-  let rank = 1;
-  players.forEach((p, i) => { if (i > 0 && p.total < players[i-1].total) rank = i+1; p.rank = rank; });
-
-  cloudSave();
-  renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
-  closeBulkAddModal();
-  const msg = added > 0
-    ? `✅ Added ${added} player${added>1?'s':''}${skipped>0?' · '+skipped+' skipped (duplicate)':''}`
-    : `⚠ No new players — ${skipped} already exist${skipped>1?'s':''}`;
-  showToast(msg, added > 0 ? 'success' : '');
-}
 </script>
 
 <!-- ══════════════ TEAM EDIT MODAL ══════════════ -->
@@ -2976,33 +2879,6 @@ function executeBulkAdd() {
       <button class="btn primary" style="flex:1" onclick="saveAchModal()">💾 Save</button>
       <button class="btn danger" id="ach-modal-delete" style="display:none" onclick="deleteAchModal()">🗑 Delete</button>
       <button class="btn" onclick="closeAchModal()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ BULK ADD PLAYERS MODAL ══════════════ -->
-<div class="modal-overlay" id="bulk-add-modal">
-  <div class="modal" style="max-width:480px">
-    <button class="modal-close" onclick="closeBulkAddModal()">✕</button>
-    <div class="modal-title">➕ Add Players</div>
-    <div class="modal-sub">Add one player per line. All start with 0 points and stats.</div>
-
-    <div class="form-group">
-      <label class="form-label">Player Names <span style="color:var(--muted);font-size:10px">(one per line)</span></label>
-      <textarea id="bulk-names-input" placeholder="VG.JOHN&#10;ZPC.MARIA&#10;HYDRA.ALEX&#10;HSTLR.SAM"
-        style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;outline:none;width:100%;min-height:160px;resize:vertical;line-height:1.6;transition:border-color .15s"
-        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
-    </div>
-
-    <div id="bulk-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px;max-height:180px;overflow-y:auto">
-      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Preview</div>
-      <div id="bulk-preview-list"></div>
-    </div>
-
-    <div id="bulk-add-error" class="modal-error"></div>
-    <div class="modal-actions">
-      <button class="btn primary" style="flex:1" onclick="executeBulkAdd()">✅ Add Players</button>
-      <button class="btn" onclick="closeBulkAddModal()">Cancel</button>
     </div>
   </div>
 </div>
