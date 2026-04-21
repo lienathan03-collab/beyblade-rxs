@@ -154,7 +154,10 @@
   /* No-photo silhouette */
   .podium-no-photo {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    font-size: 48px; opacity: 0.15; pointer-events: none;
+    pointer-events: none; overflow: hidden;
+  }
+  .podium-no-photo img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center top; opacity: 0.5;
   }
 
   /* SEASON KING badge */
@@ -472,12 +475,12 @@
     <!-- 2nd Place -->
     <div class="podium-card p2 pa-silver" id="card-2nd">
       <div class="podium-bg" id="bg-2nd"></div>
-      <div class="podium-no-photo">🧍</div>
+      <div class="podium-no-photo"><img src="https://i.imgur.com/pCXApqQ.png" alt="" /></div>
       <div class="podium-place">🥈</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(2)">📷 Edit</button>
       <div class="podium-stats">
-        <div class="podium-name" id="p2-name">NONOY X</div>
-        <div class="podium-pts" id="p2-pts">70</div>
+        <div class="podium-name" id="p2-name">—</div>
+        <div class="podium-pts" id="p2-pts">0</div>
         <div class="podium-label">2nd Place</div>
       </div>
     </div>
@@ -485,12 +488,12 @@
     <!-- 1st Place — Season King -->
     <div class="podium-card p1 pa-gold" id="card-1st">
       <div class="podium-bg" id="bg-1st"></div>
-      <div class="podium-no-photo">🧍</div>
+      <div class="podium-no-photo"><img src="https://i.imgur.com/pCXApqQ.png" alt="" /></div>
       <div class="podium-place">👑</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(1)">📷 Edit</button>
       <div class="podium-stats">
-        <div class="podium-name" id="p1-name">VG.xUYAPOS</div>
-        <div class="podium-pts" id="p1-pts">89</div>
+        <div class="podium-name" id="p1-name">—</div>
+        <div class="podium-pts" id="p1-pts">0</div>
         <div class="season-king-badge" style="margin-top:4px">👑 Season King</div>
       </div>
     </div>
@@ -498,12 +501,12 @@
     <!-- 3rd Place -->
     <div class="podium-card p3 pa-bronze" id="card-3rd">
       <div class="podium-bg" id="bg-3rd"></div>
-      <div class="podium-no-photo">🧍</div>
+      <div class="podium-no-photo"><img src="https://i.imgur.com/pCXApqQ.png" alt="" /></div>
       <div class="podium-place">🥉</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(3)">📷 Edit</button>
       <div class="podium-stats">
-        <div class="podium-name" id="p3-name">VG.xBOSSRY</div>
-        <div class="podium-pts" id="p3-pts">69</div>
+        <div class="podium-name" id="p3-name">—</div>
+        <div class="podium-pts" id="p3-pts">0</div>
         <div class="podium-label">3rd Place</div>
       </div>
     </div>
@@ -552,19 +555,7 @@
   <div class="section-header"><span class="section-title">Hall of Fame</span><div class="section-line"></div></div>
   <div id="ach-grid" class="ach-grid"></div>
 </div>
-  <div class="ach-grid">
-    <div class="ach-card"><div class="ach-icon">👑</div><div class="ach-info"><div class="name">Season King</div><div class="desc">Highest total points this season</div><div class="holder">VG.xUYAPOS — 89 pts</div></div></div>
-    <div class="ach-card"><div class="ach-icon">🥈</div><div class="ach-info"><div class="name">Runner Up</div><div class="desc">Second highest total points</div><div class="holder">NONOY X — 70 pts</div></div></div>
-    <div class="ach-card"><div class="ach-icon">🥉</div><div class="ach-info"><div class="name">Third Place</div><div class="desc">Third highest total points</div><div class="holder">VG.xBOSSRY — 69 pts</div></div></div>
-    <div class="ach-card"><div class="ach-icon">⚡</div><div class="ach-info"><div class="name">Most Events</div><div class="desc">Participated in most events</div><div class="holder">VG.xUYAPOS — 20 events</div></div></div>
-    <div class="ach-card"><div class="ach-icon">🎯</div><div class="ach-info"><div class="name">Perfect Score</div><div class="desc">Scored 10 pts in a single event</div><div class="holder">NONOY X, CHEYANNE, HYDRA.KAYDEN</div></div></div>
-    <div class="ach-card"><div class="ach-icon">🔥</div><div class="ach-info"><div class="name">Top VG Member</div><div class="desc">Highest scoring VG team member</div><div class="holder">VG.xUYAPOS — 89 pts</div></div></div>
-    <div class="ach-card"><div class="ach-icon">💎</div><div class="ach-info"><div class="name">Top ZPC Member</div><div class="desc">Highest scoring ZPC team member</div><div class="holder">ZPC.JUANDER — 65 pts</div></div></div>
-    <div class="ach-card"><div class="ach-icon">🐉</div><div class="ach-info"><div class="name">Top HYDRA Member</div><div class="desc">Highest scoring HYDRA team member</div><div class="holder">HYDRA.REOKI — 60 pts</div></div></div>
-    <div class="ach-card"><div class="ach-icon">⭐</div><div class="ach-info"><div class="name">Early Champion</div><div class="desc">Won first event (Week 1)</div><div class="holder">HSTLR. CHAPSILOG — 8 pts</div></div></div>
-    <div class="ach-card"><div class="ach-icon">👑</div><div class="ach-info"><div class="name">VANZ Bday King</div><div class="desc">Won the VANZ Birthday event</div><div class="holder">NONOY X / ZPC.JUANDER</div></div></div>
-  </div>
-</div>
+
 
 <!-- ══════════════ CHALLONGE TAB ══════════════ -->
 <div id="tab-challonge" class="section">
@@ -764,67 +755,8 @@ let isAdmin = false;
 // ═══════════════════════════════════════════════════════
 //  DATA
 // ═══════════════════════════════════════════════════════
-let players = [
-  {no:1,name:"VG.xUYAPOS",scores:[6,6,8,8,8,1,1,3,6,5,8,10,1,1,5,5,2,1,3,1],total:89,rank:1},
-  {no:2,name:"NONOY X / NOY MAHAW!",scores:[2,5,8,2,5,1,1,10,0,1,8,1,0,6,0,2,2,0,8,8],total:70,rank:2},
-  {no:3,name:"VG.xBOSSRY",scores:[2,3,2,1,6,1,8,2,1,0,6,5,3,1,4,6,8,5,3,2],total:69,rank:3},
-  {no:4,name:"ZPC.JUANDER",scores:[2,8,1,2,3,2,1,5,3,1,4,1,5,8,8,5,1,2,3,0],total:65,rank:4},
-  {no:5,name:"HYDRA.REOKI",scores:[1,3,1,1,6,1,5,1,2,2,2,2,8,0,2,8,6,5,3,1],total:60,rank:5},
-  {no:6,name:"VG.TAKAHASHI",scores:[4,1,2,1,3,1,3,1,6,1,1,3,2,8,2,1,1,8,4,2],total:55,rank:6},
-  {no:7,name:"LIENATHAN",scores:[1,4,1,2,3,0,6,2,2,4,1,2,6,2,2,2,1,2,8,3],total:54,rank:7},
-  {no:8,name:"VG. MS. LYN",scores:[5,0,1,0,8,2,4,3,0,2,1,1,2,3,8,1,1,2,2,4],total:45,rank:8},
-  {no:9,name:"VG.xCHRISLYN",scores:[3,2,2,6,4,1,1,2,3,0,1,1,1,5,1,4,2,3,2,1],total:45,rank:9},
-  {no:10,name:"KING JUDE",scores:[5,1,1,4,3,1,2,1,8,1,1,1,1,0,2,1,6,1,2,1],total:43,rank:10},
-  {no:11,name:"CHEYANNE",scores:[2,5,1,2,1,0,1,9,6,2,1,1,1,1,1,1,1,2,2,2],total:42,rank:11},
-  {no:12,name:"HYDRA.KAYDEN",scores:[1,2,3,3,1,1,1,1,2,6,0,9,4,0,0,1,2,3,0,1],total:41,rank:12},
-  {no:13,name:"BOSS X",scores:[2,1,5,1,5,1,0,1,0,1,0,4,0,1,0,2,0,1,4,10],total:39,rank:13},
-  {no:14,name:"VG.TETSUYA",scores:[1,2,1,1,3,1,2,2,1,1,2,1,2,2,3,5,3,1,3,2],total:39,rank:13},
-  {no:15,name:"ZPC.KHAJI / INCISION",scores:[1,1,1,2,1,0,3,3,1,2,0,1,3,2,6,3,2,1,2,0],total:35,rank:14},
-  {no:16,name:"DEAUX",scores:[0,0,0,0,0,0,1,4,0,8,1,2,0,1,0,2,0,8,2,6],total:35,rank:14},
-  {no:17,name:"VG.GAV X",scores:[1,1,1,1,3,1,1,1,5,1,1,1,1,4,1,3,2,1,2,2],total:34,rank:15},
-  {no:18,name:"VG.THV",scores:[1,2,2,1,4,1,1,1,1,2,2,1,3,2,2,1,0,3,2,1],total:33,rank:16},
-  {no:19,name:"CHEYENNE",scores:[1,1,1,1,1,0,1,2,3,2,2,1,2,1,1,1,1,2,8,1],total:33,rank:16},
-  {no:20,name:"VG.ICHAN",scores:[2,0,3,0,3,1,0,1,0,5,2,1,3,1,1,1,2,1,3,1],total:31,rank:17},
-  {no:21,name:"FRANCIS X",scores:[1,5,0,0,0,1,1,1,0,1,1,2,0,0,0,1,0,2,8,3],total:27,rank:18},
-  {no:22,name:"BFD",scores:[2,1,0,1,0,3,1,1,1,3,3,1,2,0,0,0,4,1,0,2],total:26,rank:19},
-  {no:23,name:"HYDRA. GINGA G",scores:[2,0,0,1,1,1,2,0,0,1,1,2,1,2,3,2,0,3,3,1],total:26,rank:19},
-  {no:24,name:"ZPC.KHRIZ",scores:[1,2,1,1,3,1,1,1,1,1,3,1,1,2,3,0,1,0,0,0],total:24,rank:20},
-  {no:25,name:"ZPC.THE ARCADION",scores:[0,0,4,1,0,0,0,2,1,3,1,1,1,3,0,1,3,1,2,0],total:24,rank:20},
-  {no:26,name:"MS.E",scores:[1,0,0,0,0,1,1,0,0,0,0,0,1,0,0,2,3,1,8,3],total:21,rank:21},
-  {no:27,name:"ZPC. KYLE EXTREME",scores:[0,0,0,0,1,1,2,1,1,1,1,1,1,1,2,0,1,0,3,3],total:20,rank:22},
-  {no:28,name:"DINOO",scores:[2,2,1,2,1,0,5,1,0,1,1,1,1,0,0,1,0,1,0,0],total:20,rank:22},
-  {no:29,name:"HYDRA. CANATA",scores:[1,1,1,3,1,1,2,0,0,3,1,1,0,0,2,0,1,0,2,0],total:20,rank:22},
-  {no:30,name:"HYDRA.IZZY",scores:[1,0,2,6,0,1,1,1,0,0,2,3,0,0,0,0,0,0,2,0],total:19,rank:23},
-  {no:31,name:"ZPC. VLADER X",scores:[2,0,2,1,0,1,0,0,0,0,1,1,0,0,0,3,0,0,8,0],total:19,rank:23},
-  {no:32,name:"MR. JAN",scores:[2,0,0,0,0,1,1,0,0,0,0,0,1,0,0,1,1,0,8,2],total:17,rank:24},
-  {no:34,name:"JUICEWA",scores:[1,1,1,1,0,0,3,1,0,0,0,1,1,1,0,2,0,1,2,0],total:16,rank:25},
-  {no:35,name:"VG. PEEKABOO",scores:[0,0,0,0,0,0,1,1,0,0,1,0,1,2,1,1,1,0,3,2],total:14,rank:26},
-  {no:36,name:"ZPC. ZONETWO",scores:[0,0,1,0,1,1,0,1,0,1,3,0,1,1,0,0,0,0,4,0],total:14,rank:26},
-  {no:37,name:"HYDRA.DZLAN",scores:[0,0,1,0,0,0,2,1,0,0,1,1,0,0,0,0,4,2,0,0],total:12,rank:27},
-  {no:39,name:"ALNIX X / XPress",scores:[2,1,0,1,0,0,1,1,0,0,1,1,1,0,0,1,0,0,2,0],total:12,rank:27},
-  {no:40,name:"MANG JOSE / xOTEP",scores:[0,1,3,0,1,0,1,1,0,0,0,1,0,0,0,0,1,3,0,0],total:12,rank:27},
-  {no:41,name:"JETHSU",scores:[1,3,3,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,2,1],total:12,rank:26},
-  {no:42,name:"HYDRA. VANZ RYUGA",scores:[1,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,8,0],total:11,rank:28},
-  {no:43,name:"ZPC.UMBRA.LUNABELLA",scores:[0,0,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],total:10,rank:29},
-  {no:44,name:"CHIMPOGOGO / I MISS HER",scores:[2,0,2,0,0,0,1,2,0,1,1,1,0,0,0,0,0,0,0,0],total:10,rank:29},
-  {no:45,name:"ZPC. MHIE",scores:[1,0,0,0,0,1,1,0,0,3,0,1,2,0,0,0,0,0,0,0],total:9,rank:30},
-  {no:46,name:"HSTLR. CHAPSILOG",scores:[8,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],total:9,rank:30},
-  {no:47,name:"ZPC. REM",scores:[0,0,1,2,0,0,0,0,0,0,0,3,1,1,1,0,0,0,0,0],total:9,rank:30},
-  {no:48,name:"HYDRA. BOLD",scores:[0,0,0,0,0,0,5,1,0,0,0,0,0,0,0,3,0,0,0,0],total:9,rank:30},
-  {no:49,name:"RV",scores:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,0,0],total:9,rank:30},
-  {no:50,name:"VG. KETT / SLEEPY",scores:[0,0,0,0,0,0,0,0,3,1,2,0,1,0,1,0,0,0,0,0],total:8,rank:31},
-  {no:51,name:"FRANCIS X JR",scores:[0,0,0,1,0,0,0,2,0,0,1,0,0,3,0,0,0,0,0,0],total:7,rank:32},
-  {no:52,name:"HYDRA.NICOMA",scores:[3,0,0,0,0,0,0,1,2,0,0,1,0,0,0,0,0,0,0,0],total:7,rank:32},
-  {no:53,name:"VG. KIRARA",scores:[0,0,0,0,0,0,0,0,3,1,0,2,0,1,0,0,0,0,0,0],total:7,rank:32},
-  {no:54,name:"PRIOHN",scores:[0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,3,0,0,0,0],total:5,rank:33},
-  {no:55,name:"VG. PRINCE",scores:[0,0,0,0,0,0,1,1,0,1,2,0,0,0,0,0,0,0,0,0],total:5,rank:33},
-  {no:56,name:"MAXWELL",scores:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0],total:5,rank:33},
-  {no:57,name:"VG.FROZEN",scores:[1,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],total:4,rank:34},
-  {no:58,name:"ZPC. YIYI",scores:[0,0,0,0,0,0,0,0,0,2,1,0,0,1,0,0,0,0,0,0],total:4,rank:34},
-  {no:59,name:"JUST IN 2.0",scores:[1,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0],total:4,rank:34},
-  {no:60,name:"KENDRIX",scores:[0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0],total:4,rank:34},
-];
-let eventLabels = ['W1','W2','W3','W4','W5','DAYO','W6','W7','VG ER','ZPC ER','VG ER','VANZ BD','VG BD','W9','VG ER','W10','VG ER','W11','W12','W13'];
+let players = [];
+let eventLabels = [];
 
 // Podium photos stored in localStorage
 let podiumPhotos = { 1: '', 2: '', 3: '' };
@@ -1688,13 +1620,29 @@ function renderAchievements() {
 // ═══════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════
-renderLeaderboard();
-renderWeekly();
-renderTeamTotals();
-updateHeroStats();
-renderAchievements();
-loadSavedPhotos();
-applyHeroBgToPage();
+// Clear all cached data so the new season starts completely fresh
+(async function initFresh() {
+  // 1. Wipe localStorage
+  try { localStorage.removeItem(LS_KEY); } catch(e) {}
+
+  // 2. Push empty state to JSONBin cloud so all devices get cleared
+  try {
+    await fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
+      body: JSON.stringify({ photos: {1:'',2:'',3:''}, heroBgUrl: '', players: [], eventLabels: [], importedIds: [] })
+    });
+    console.log('[Init] Cloud cleared for new season.');
+  } catch(e) { console.warn('[Init] Cloud clear failed:', e); }
+
+  // 3. Render empty state
+  renderLeaderboard();
+  renderWeekly();
+  renderTeamTotals();
+  updateHeroStats();
+  renderAchievements();
+  applyHeroBgToPage();
+})();
 </script>
 </body>
 </html>
