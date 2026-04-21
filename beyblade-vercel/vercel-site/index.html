@@ -1597,35 +1597,44 @@ async function confirmImport(labelEnc, resultsEnc, tournamentId) {
         if (p1Name) matchCounts[p1Name] = (matchCounts[p1Name] || 0) + 1;
         if (p2Name) matchCounts[p2Name] = (matchCounts[p2Name] || 0) + 1;
         // Parse scores_csv for per-match point totals
-        if (match.scores_csv && p1Name && p2Name) {
-          // scores_csv can be "6-3" or "6-3,5-4" (best-of sets) — sum all sets per player
-          let p1Pts = 0, p2Pts = 0;
+        // Challonge scores_csv is ALWAYS "higher-lower" regardless of p1/p2 position
+        // So we assign higher score to winner, lower score to loser
+        if (match.scores_csv && p1Name && p2Name && winnerName) {
+          const loserName = (match.winner_id === match.player1_id) ? p2Name : p1Name;
+          let winnerPts = 0, loserPts = 0;
           const sets = match.scores_csv.split(',');
           sets.forEach(set => {
             const parts = set.trim().split('-');
             if (parts.length === 2) {
-              p1Pts += parseInt(parts[0]) || 0;
-              p2Pts += parseInt(parts[1]) || 0;
+              const a = parseInt(parts[0]) || 0;
+              const b = parseInt(parts[1]) || 0;
+              // scores_csv stores higher first — winner gets higher, loser gets lower
+              winnerPts += Math.max(a, b);
+              loserPts  += Math.min(a, b);
             }
           });
-          matchPtCounts[p1Name] = (matchPtCounts[p1Name] || 0) + p1Pts;
-          matchPtCounts[p2Name] = (matchPtCounts[p2Name] || 0) + p2Pts;
+          matchPtCounts[winnerName] = (matchPtCounts[winnerName] || 0) + winnerPts;
+          matchPtCounts[loserName]  = (matchPtCounts[loserName]  || 0) + loserPts;
         }
       });
-      // Accumulate into bladerStats
-      Object.entries(winCounts).forEach(([name, w]) => {
-        const st = ensureBladerStats(name);
-        st.wins = (st.wins || 0) + w;
-      });
-      Object.entries(matchCounts).forEach(([name, m]) => {
-        const st = ensureBladerStats(name);
-        st.matchesPlayed = (st.matchesPlayed || 0) + m;
-      });
-      Object.entries(matchPtCounts).forEach(([name, pts]) => {
-        const st = ensureBladerStats(name);
-        st.matchPoints = (st.matchPoints || 0) + pts;
-      });
-      console.log('[Import] Win counts:', winCounts, '| Match pts:', matchPtCounts);
+      // Accumulate into bladerStats — only if not already imported
+      if (!importedTournamentIds.includes(String(tournamentId))) {
+        Object.entries(winCounts).forEach(([name, w]) => {
+          const st = ensureBladerStats(name);
+          st.wins = (st.wins || 0) + w;
+        });
+        Object.entries(matchCounts).forEach(([name, m]) => {
+          const st = ensureBladerStats(name);
+          st.matchesPlayed = (st.matchesPlayed || 0) + m;
+        });
+        Object.entries(matchPtCounts).forEach(([name, pts]) => {
+          const st = ensureBladerStats(name);
+          st.matchPoints = (st.matchPoints || 0) + pts;
+        });
+        console.log('[Import] Win counts:', winCounts, '| Match pts:', matchPtCounts);
+      } else {
+        console.log('[Import] Skipping stat accumulation — tournament already imported.');
+      }
     } catch(e) { console.warn('[Import] Could not fetch matches for win tracking:', e); }
   }
 
