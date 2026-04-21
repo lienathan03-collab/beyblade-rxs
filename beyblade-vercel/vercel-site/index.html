@@ -424,6 +424,7 @@
   <span style="font-size:14px">👑</span>
   <span class="admin-bar-text">ADMIN MODE — Changes are live. Viewers see Challonge results only.</span>
   <div class="admin-bar-actions">
+    <button class="btn primary" style="font-size:11px;padding:5px 12px;" onclick="adminManualSave()">💾 Save Changes</button>
     <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openPhotoModal()">📸 Edit Podium Photos</button>
     <button class="btn" style="font-size:11px;padding:5px 12px;" onclick="openHeroBgModal()">🖼 Edit Background</button>
     <button class="btn danger" style="font-size:11px;padding:5px 12px;" onclick="adminLogout()">Logout</button>
@@ -1618,31 +1619,30 @@ function renderAchievements() {
 }
 
 // ═══════════════════════════════════════════════════════
+//  MANUAL SAVE BUTTON
+// ═══════════════════════════════════════════════════════
+async function adminManualSave() {
+  if (!isAdmin) return;
+  const btn = document.querySelector('.admin-bar-actions .btn.primary');
+  if (btn) { btn.textContent = '⏳ Saving…'; btn.disabled = true; }
+  await cloudSave();
+  setTimeout(() => {
+    if (btn) { btn.textContent = '💾 Save Changes'; btn.disabled = false; }
+    showToast('✅ All changes saved to cloud!', 'success');
+  }, 1200);
+}
+
+// ═══════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════
-// Clear all cached data so the new season starts completely fresh
-(async function initFresh() {
-  // 1. Wipe localStorage
-  try { localStorage.removeItem(LS_KEY); } catch(e) {}
-
-  // 2. Push empty state to JSONBin cloud so all devices get cleared
-  try {
-    await fetch(JSONBIN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
-      body: JSON.stringify({ photos: {1:'',2:'',3:''}, heroBgUrl: '', players: [], eventLabels: [], importedIds: [] })
-    });
-    console.log('[Init] Cloud cleared for new season.');
-  } catch(e) { console.warn('[Init] Cloud clear failed:', e); }
-
-  // 3. Render empty state
-  renderLeaderboard();
-  renderWeekly();
-  renderTeamTotals();
-  updateHeroStats();
-  renderAchievements();
-  applyHeroBgToPage();
-})();
+// Load saved data from cloud on startup
+renderLeaderboard();
+renderWeekly();
+renderTeamTotals();
+updateHeroStats();
+renderAchievements();
+loadSavedPhotos();
+applyHeroBgToPage();
 </script>
 </body>
 </html>
