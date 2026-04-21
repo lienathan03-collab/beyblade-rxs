@@ -1500,58 +1500,92 @@ function renderTournamentDetail() {
 function importTournamentResults() {
   const label = document.getElementById('event-label-input').value.trim() || `Event ${eventLabels.length+1}`;
   if (!currentParticipants.length) { showToast('No tournament selected.', 'error'); return; }
-  const results = currentParticipants.map((p,i) => ({
-    challongeName: (p.display_name||p.name||'').trim(),
-    rank: p.final_rank||(i+1),
-    pts: getPointsForRank(p.final_rank||(i+1)),
-    matchedPlayer: findPlayerByName((p.display_name||p.name||'').trim())
-  }));
 
-  // Build editable score preview — admin can change pts before confirming
+  // Snapshot everything RIGHT NOW so clicking another tournament won't affect this import
+  const snapshotParticipants = currentParticipants.slice();
+  const snapshotTournamentId = selectedTournament?.id || '';
+  const snapshotTournamentUrl = selectedTournament?.url || '';
+
+  const results = snapshotParticipants.map((p,i) => {
+    const challongeName = (p.display_name||p.name||'').trim();
+    const matched = findPlayerByName(challongeName);
+    return {
+      challongeName,
+      rank: p.final_rank||(i+1),
+      pts: getPointsForRank(p.final_rank||(i+1)),
+      matchedPlayer: matched ? matched.name : null
+    };
+  });
+
+  // Player name options for dropdown (existing players + NEW)
+  const playerOptions = ['__NEW__', ...players.map(p => p.name)];
+
   const rowsHtml = results.map((r, i) => {
-    const nameDisplay = r.matchedPlayer
-      ? `${r.challongeName} → <strong>${r.matchedPlayer.name}</strong>`
-      : `${r.challongeName} <span class="inline-tag">NEW</span>`;
-    return `<div class="import-row" style="align-items:center">
+    const selectedVal = r.matchedPlayer || '__NEW__';
+    const dropdownOptions = playerOptions.map(name =>
+      `<option value="${name}" ${name === selectedVal ? 'selected' : ''}>${name === '__NEW__' ? '➕ Add as NEW player' : name}</option>`
+    ).join('');
+    const matchColor = r.matchedPlayer ? 'var(--green)' : 'var(--gold)';
+    return `<div class="import-row" style="align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
       <div class="ir-rank">#${r.rank}</div>
-      <div class="ir-name" style="flex:1">${nameDisplay}</div>
+      <div style="flex:1;min-width:140px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Challonge: <strong style="color:var(--accent)">${r.challongeName}</strong></div>
+        <select class="import-match-select" data-idx="${i}"
+          style="width:100%;background:var(--surface2);border:1px solid ${matchColor};color:var(--accent);
+          border-radius:6px;padding:4px 6px;font-family:'Exo 2',sans-serif;font-size:12px;cursor:pointer">
+          ${dropdownOptions}
+        </select>
+      </div>
       <input type="number" class="import-pts-input" data-idx="${i}" value="${r.pts}" min="0" max="99"
         style="width:52px;background:var(--surface2);border:1px solid var(--border2);color:var(--accent);
         border-radius:6px;padding:3px 6px;font-family:'Share Tech Mono',monospace;font-size:13px;text-align:center" />
-      <span style="font-size:11px;color:var(--muted);margin-left:4px">pts</span>
+      <span style="font-size:11px;color:var(--muted)">pts</span>
     </div>`;
   }).join('');
 
   const safeLabel = encodeURIComponent(label);
-  const safeBaseResults = encodeURIComponent(JSON.stringify(results.map(r=>({...r, matchedPlayer: r.matchedPlayer ? r.matchedPlayer.name : null}))));
+  const safeResults = encodeURIComponent(JSON.stringify(results));
+  const safeTid = encodeURIComponent(snapshotTournamentId);
+  const safeTurl = encodeURIComponent(snapshotTournamentUrl);
 
   const preview = `<div class="import-preview">
-    <div class="import-title">✏️ Edit Scores — ${results.length} participants</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">You can change any score before importing.</div>
+    <div class="import-title">✏️ Confirm Import — ${results.length} participants</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Check each player matches correctly. Use the dropdown to fix any wrong matches.</div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:12px">🟢 green = auto-matched &nbsp;|&nbsp; 🟡 gold = new player</div>
     <div id="editable-results-wrap">${rowsHtml}</div>
     <div style="margin-top:14px;display:flex;gap:8px">
-      <button class="btn primary" onclick="confirmImportEdited('${safeLabel}','${safeBaseResults}','${selectedTournament?.id||''}')">✅ Confirm Import</button>
+      <button class="btn primary" onclick="confirmImportFinal('${safeLabel}','${safeResults}','${safeTid}','${safeTurl}')">✅ Confirm Import</button>
       <button class="btn" onclick="document.getElementById('import-preview-wrap').innerHTML=''">Cancel</button>
     </div>
   </div>`;
   document.getElementById('import-preview-wrap').innerHTML = preview;
 }
 
-function confirmImportEdited(labelEnc, baseResultsEnc, tournamentId) {
-  // Read any edited pts values from the input fields
-  const inputs = document.querySelectorAll('.import-pts-input');
-  const baseResults = JSON.parse(decodeURIComponent(baseResultsEnc));
-  inputs.forEach(inp => {
+function confirmImportFinal(labelEnc, resultsEnc, tidEnc, turlEnc) {
+  const baseResults = JSON.parse(decodeURIComponent(resultsEnc));
+  const tournamentId = decodeURIComponent(tidEnc);
+  const tournamentUrl = decodeURIComponent(turlEnc);
+
+  // Read dropdown selections and pts overrides
+  document.querySelectorAll('.import-match-select').forEach(sel => {
+    const idx = parseInt(sel.dataset.idx);
+    if (!isNaN(idx) && baseResults[idx]) {
+      const val = sel.value;
+      baseResults[idx].matchedPlayer = val === '__NEW__' ? null : val;
+    }
+  });
+  document.querySelectorAll('.import-pts-input').forEach(inp => {
     const idx = parseInt(inp.dataset.idx);
     if (!isNaN(idx) && baseResults[idx]) {
       baseResults[idx].pts = parseInt(inp.value) || 0;
     }
   });
+
   const safeResults = encodeURIComponent(JSON.stringify(baseResults));
-  confirmImport(labelEnc, safeResults, tournamentId);
+  confirmImport(labelEnc, safeResults, tournamentId, tournamentUrl);
 }
 
-async function confirmImport(labelEnc, resultsEnc, tournamentId) {
+async function confirmImport(labelEnc, resultsEnc, tournamentId, tournamentUrl) {
   const label = decodeURIComponent(labelEnc);
   const results = JSON.parse(decodeURIComponent(resultsEnc));
   eventLabels.push(label);
@@ -1571,9 +1605,9 @@ async function confirmImport(labelEnc, resultsEnc, tournamentId) {
   players.forEach((p,i)=>{ if(i>0&&p.total<players[i-1].total) rank=i+1; p.rank=rank; });
 
   // ── Read wins/losses/scores from Challonge match data ──
-  if ((tournamentId || selectedTournament?.url) && !importedTournamentIds.includes(String(tournamentId))) {
+  if ((tournamentUrl || tournamentId) && !importedTournamentIds.includes(String(tournamentId))) {
     try {
-      const tid = selectedTournament?.url || tournamentId;
+      const tid = tournamentUrl || tournamentId;
       const matchData = await fetchChallonge(`?action=matches&tournament_id=${encodeURIComponent(tid)}`);
       // Build participant id → player name map
       const pidMap = {};
@@ -2006,6 +2040,21 @@ function openBladerProfile(name) {
   modal.querySelector('#pe-losses-input').value    = '';
   modal.querySelector('#pe-matchpts-input').value  = '';
 
+  // populate event scores override grid
+  const p = players.find(pl => pl.name === name);
+  const evGrid = modal.querySelector('#pe-event-scores-grid');
+  if (p && eventLabels.length > 0) {
+    evGrid.innerHTML = eventLabels.map((lbl, i) =>
+      `<div class="profile-edit-field">
+        <label>${lbl} <span style="color:var(--muted2);font-size:10px">(now: ${p.scores[i]||0})</span></label>
+        <input type="number" class="pe-event-score-input" data-event-idx="${i}" placeholder="${p.scores[i]||0}" min="0" max="99"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--accent);border-radius:6px;padding:4px 8px;font-family:'Share Tech Mono',monospace;font-size:13px" />
+      </div>`
+    ).join('');
+  } else {
+    evGrid.innerHTML = '<div style="font-size:11px;color:var(--muted2);grid-column:span 2">No events recorded yet.</div>';
+  }
+
   document.getElementById('blader-profile-modal').classList.add('open');
 }
 
@@ -2030,6 +2079,24 @@ function saveBladerProfile() {
   st.spinFinishes    = (st.spinFinishes||0)    + addSpin;
   st.burstFinishes   = (st.burstFinishes||0)   + addBurst;
   st.extremeFinishes = (st.extremeFinishes||0) + addExtreme;
+  // event score overrides — only update slots where admin typed a value
+  const evInputs = document.querySelectorAll('.pe-event-score-input');
+  evInputs.forEach(inp => {
+    const idx = parseInt(inp.dataset.eventIdx);
+    const val = inp.value.trim();
+    if (val === '' || isNaN(idx)) return;
+    const p = players.find(pl => pl.name === name);
+    if (!p || idx >= p.scores.length) return;
+    const oldVal = p.scores[idx] || 0;
+    const newVal = parseInt(val) || 0;
+    p.scores[idx] = newVal;
+    p.total = p.total - oldVal + newVal;
+  });
+  // re-sort and re-rank after score changes
+  players.sort((a,b) => b.total - a.total);
+  let rank = 1;
+  players.forEach((pl, i) => { if (i > 0 && pl.total < players[i-1].total) rank = i+1; pl.rank = rank; });
+
   // wins/matches OVERRIDE (only if a value was entered)
   const winsOverride    = document.getElementById('pe-wins-input').value.trim();
   const lossesOverride  = document.getElementById('pe-losses-input').value.trim();
@@ -2047,6 +2114,7 @@ function saveBladerProfile() {
   document.getElementById('pe-losses-input').value   = '';
   document.getElementById('pe-matchpts-input').value = '';
   cloudSave();
+  renderLeaderboard(); renderWeekly(); updateHeroStats(); renderAchievements();
   openBladerProfile(name);
   showToast(`Saved! +${addSpin} spin, +${addBurst} burst, +${addExtreme} extreme`, 'success');
 }
@@ -2332,6 +2400,9 @@ applyHeroBgToPage();
             <input type="number" id="pe-extreme" placeholder="0" min="0" />
           </div>
         </div>
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin:14px 0 4px">📅 Event Scores Override</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Set the exact points for any event. Leave blank to keep current value.</div>
+        <div id="pe-event-scores-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px"></div>
         <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">⚔️ Match Record Override</div>
         <div id="pe-wins-display" style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted2);padding:2px 0 8px"></div>
         <div class="profile-edit-grid">
