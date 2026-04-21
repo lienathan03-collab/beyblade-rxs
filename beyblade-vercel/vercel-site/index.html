@@ -628,7 +628,7 @@
     <!-- 2nd Place -->
     <div class="podium-card p2 pa-silver" id="card-2nd">
       <div class="podium-bg" id="bg-2nd"></div>
-      <div class="podium-no-photo"><img src="https://i.imgur.com/pCXApqQ.png" alt="" /></div>
+      <div class="podium-no-photo"><img src="https://i.imgur.com/0KtgsFq.png" alt="" /></div>
       <div class="podium-place">🥈</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(2)">📷 Edit</button>
       <div class="podium-stats">
@@ -641,7 +641,7 @@
     <!-- 1st Place — Season King -->
     <div class="podium-card p1 pa-gold" id="card-1st">
       <div class="podium-bg" id="bg-1st"></div>
-      <div class="podium-no-photo"><img src="https://i.imgur.com/pCXApqQ.png" alt="" /></div>
+      <div class="podium-no-photo"><img src="https://i.imgur.com/0KtgsFq.png" alt="" /></div>
       <div class="podium-place">👑</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(1)">📷 Edit</button>
       <div class="podium-stats">
@@ -654,7 +654,7 @@
     <!-- 3rd Place -->
     <div class="podium-card p3 pa-bronze" id="card-3rd">
       <div class="podium-bg" id="bg-3rd"></div>
-      <div class="podium-no-photo"><img src="https://i.imgur.com/pCXApqQ.png" alt="" /></div>
+      <div class="podium-no-photo"><img src="https://i.imgur.com/0KtgsFq.png" alt="" /></div>
       <div class="podium-place">🥉</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(3)">📷 Edit</button>
       <div class="podium-stats">
@@ -1103,7 +1103,7 @@ function loadSavedPhotos() {
   cloudLoad();
 }
 
-const DEFAULT_CARD_BG = 'https://i.imgur.com/b7lN1X5.jpg';
+const DEFAULT_CARD_BG = 'https://i.imgur.com/0KtgsFq.png';
 function applyPodiumPhotos() {
   [1,2,3].forEach(n => {
     const url = podiumPhotos[n];
@@ -2167,14 +2167,14 @@ function openBladerProfile(name) {
   const rankEmoji = profile.rank===1?'👑':profile.rank===2?'🥈':profile.rank===3?'🥉':'';
 
   const modal = document.getElementById('blader-profile-modal');
-  const DEFAULT_PROFILE_BG = 'https://i.imgur.com/b7lN1X5.jpg';
+  const DEFAULT_PROFILE_BG = 'https://i.imgur.com/Kz7lPF2.jpeg';
   modal.querySelector('.profile-hero-bg').style.backgroundImage = `url('${DEFAULT_PROFILE_BG}')`;
   modal.querySelector('.profile-hero-bg').style.background = '';
 
   const av = modal.querySelector('.profile-avatar');
   av.innerHTML = profile.photo
-    ? `<img src="${profile.photo}" alt="${name}" onerror="this.parentElement.innerHTML='🧍'" />`
-    : '🧍';
+    ? `<img src="${profile.photo}" alt="${name}" onerror="this.parentElement.innerHTML='<img src=\\'https://i.imgur.com/0KtgsFq.png\\' style=\\'width:100%;height:100%;object-fit:cover\\' />'" />`
+    : `<img src="https://i.imgur.com/0KtgsFq.png" style="width:100%;height:100%;object-fit:cover" />`;
 
   modal.querySelector('.profile-pname').textContent = name;
   modal.querySelector('.profile-tags').innerHTML =
