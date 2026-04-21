@@ -754,13 +754,9 @@
 
 <script>
 // ═══════════════════════════════════════════════════════
-//  ADMIN CREDENTIALS — change these before going live!
+//  ADMIN AUTH — passwords are stored in Vercel Environment
+//  Variables, NOT here. Safe from View Source / AI reading.
 // ═══════════════════════════════════════════════════════
-const ADMIN_USERS = [
-  { username: 'admin',  password: 'rxs2026' },
-  { username: 'rxsadmin', password: 'beyblade2025' },
-];
-
 let isAdmin = false;
 
 // ═══════════════════════════════════════════════════════
@@ -863,18 +859,32 @@ function openLoginModal() {
 }
 function closeLoginModal() { document.getElementById('login-modal').classList.remove('open'); }
 
-function doLogin() {
+async function doLogin() {
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value;
-  const match = ADMIN_USERS.find(a => a.username === u && a.password === p);
-  if (match) {
-    isAdmin = true;
-    closeLoginModal();
-    applyAdminUI();
-    showToast('Welcome, ' + u + '! Admin mode active.', 'success');
-  } else {
-    document.getElementById('login-error').textContent = 'Incorrect username or password.';
-    document.getElementById('login-pass').value = '';
+  const btn = document.querySelector('#login-modal .btn.primary');
+  btn.disabled = true; btn.textContent = 'Checking…';
+  document.getElementById('login-error').textContent = '';
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      isAdmin = true;
+      closeLoginModal();
+      applyAdminUI();
+      showToast('Welcome, ' + u + '! Admin mode active.', 'success');
+    } else {
+      document.getElementById('login-error').textContent = data.error || 'Incorrect username or password.';
+      document.getElementById('login-pass').value = '';
+    }
+  } catch(e) {
+    document.getElementById('login-error').textContent = 'Login failed. Please try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Login';
   }
 }
 
@@ -903,11 +913,57 @@ function applyAdminUI() {
 }
 
 // ═══════════════════════════════════════════════════════
+//  JSONBIN CLOUD STORAGE — persists across tabs, devices, incognito
+//  Sign up free at jsonbin.io → API Keys → Create key
+//  Then create a bin and paste the BIN_ID + API_KEY below
+// ═══════════════════════════════════════════════════════
+const JSONBIN_BIN_ID = 'PASTE_YOUR_BIN_ID_HERE';
+const JSONBIN_API_KEY = 'PASTE_YOUR_API_KEY_HERE';
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+
+let cloudSaveTimeout = null;
+
+async function cloudLoad() {
+  if (!JSONBIN_BIN_ID || JSONBIN_BIN_ID === 'PASTE_YOUR_BIN_ID_HERE') return;
+  try {
+    const res = await fetch(JSONBIN_URL + '/latest', {
+      headers: { 'X-Master-Key': JSONBIN_API_KEY }
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    const data = json.record;
+    if (data.photos) { podiumPhotos = data.photos; applyPodiumPhotos(); }
+    if (data.players) { players = data.players; }
+    if (data.eventLabels) { eventLabels = data.eventLabels; }
+    if (data.importedIds) { importedTournamentIds = data.importedIds; }
+    renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
+  } catch(e) { console.warn('Cloud load failed:', e); }
+}
+
+async function cloudSave() {
+  if (!JSONBIN_BIN_ID || JSONBIN_BIN_ID === 'PASTE_YOUR_BIN_ID_HERE') return;
+  clearTimeout(cloudSaveTimeout);
+  cloudSaveTimeout = setTimeout(async () => {
+    try {
+      await fetch(JSONBIN_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
+        body: JSON.stringify({
+          photos: podiumPhotos,
+          players: players,
+          eventLabels: eventLabels,
+          importedIds: importedTournamentIds
+        })
+      });
+    } catch(e) { console.warn('Cloud save failed:', e); }
+  }, 800);
+}
+
+// ═══════════════════════════════════════════════════════
 //  PODIUM PHOTO MANAGEMENT
 // ═══════════════════════════════════════════════════════
 function loadSavedPhotos() {
-  const saved = localStorage.getItem('rxs_podium_photos');
-  if (saved) { podiumPhotos = JSON.parse(saved); applyPodiumPhotos(); }
+  cloudLoad();
 }
 
 function applyPodiumPhotos() {
@@ -959,7 +1015,7 @@ function applyPhotos() {
   [1,2,3].forEach(n => {
     podiumPhotos[n] = document.getElementById('photo-url-'+n).value.trim();
   });
-  localStorage.setItem('rxs_podium_photos', JSON.stringify(podiumPhotos));
+  cloudSave();
   applyPodiumPhotos();
   closePhotoModal();
   showToast('Podium photos updated!', 'success');
@@ -967,7 +1023,7 @@ function applyPhotos() {
 
 function clearPhotos() {
   podiumPhotos = {1:'',2:'',3:''};
-  localStorage.removeItem('rxs_podium_photos');
+  cloudSave();
   applyPodiumPhotos();
   [1,2,3].forEach(n => {
     document.getElementById('photo-url-'+n).value = '';
@@ -982,7 +1038,7 @@ function clearPhotos() {
 const API = '/api/challonge';
 
 // Track imported tournament IDs
-let importedTournamentIds = JSON.parse(localStorage.getItem('rxs_imported_ids') || '[]');
+let importedTournamentIds = [];
 
 async function fetchChallonge(query) {
   const resp = await fetch(`${API}${query}`);
@@ -1320,9 +1376,10 @@ function confirmImport(labelEnc, resultsEnc, tournamentId) {
   players.forEach((p,i)=>{ if(i>0&&p.total<players[i-1].total) rank=i+1; p.rank=rank; });
   if (tournamentId && !importedTournamentIds.includes(String(tournamentId))) {
     importedTournamentIds.push(String(tournamentId));
-    localStorage.setItem('rxs_imported_ids', JSON.stringify(importedTournamentIds));
+    cloudSave();
   }
   renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats();
+  cloudSave();
   document.getElementById('import-preview-wrap').innerHTML = `<div class="api-note" style="color:var(--green)">✅ <strong>${label}</strong> recorded! A new column has been added to Weekly Scores.</div>`;
   showToast(`${label} recorded!`, 'success');
   // Update the import button to RECORDED state
