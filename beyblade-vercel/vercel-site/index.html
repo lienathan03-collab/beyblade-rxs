@@ -191,10 +191,10 @@
     padding: 28px 20px 16px;
   }
   .profile-avatar {
-    width: 88px; height: 88px; border-radius: 50%;
+    width: 120px; height: 120px; border-radius: 50%;
     border: 3px solid var(--gold); overflow: hidden;
     background: var(--surface2); margin-bottom: 12px;
-    display: flex; align-items: center; justify-content: center; font-size: 36px;
+    display: flex; align-items: center; justify-content: center; font-size: 48px;
   }
   .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .profile-pname {
@@ -2170,8 +2170,9 @@ function openBladerProfile(name) {
   const rankEmoji = profile.rank===1?'👑':profile.rank===2?'🥈':profile.rank===3?'🥉':'';
 
   const modal = document.getElementById('blader-profile-modal');
-  modal.querySelector('.profile-hero-bg').style.backgroundImage = profile.photo ? `url('${profile.photo}')` : 'none';
-  modal.querySelector('.profile-hero-bg').style.background = profile.photo ? '' : 'linear-gradient(135deg,#1a1200,#0f0f0f)';
+  const DEFAULT_PROFILE_BG = 'https://scontent.filo1-1.fna.fbcdn.net/v/t39.30808-6/486746811_23893724073553099_578067997620602988_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=zBSJ9tDvSnYQ7kNvwFWNCtJ&_nc_oc=AdqnLE6uZThOJ24K8pUVl9YHK_nsf4L_-wuFomLt5YyXl5raYKs56pCpJyG0OFzjZIY&_nc_zt=23&_nc_ht=scontent.filo1-1.fna&_nc_gid=y9gYf7krj6yiwpwxfDV3-Q&_nc_ss=7a389&oh=00_Af0PVKPXDtvDXgES_PwkBCh1OWfFh84LXBQ4e6VCIO5tnw&oe=69ED2F7F';
+  modal.querySelector('.profile-hero-bg').style.backgroundImage = `url('${profile.photo || DEFAULT_PROFILE_BG}')`;
+  modal.querySelector('.profile-hero-bg').style.background = '';
 
   const av = modal.querySelector('.profile-avatar');
   av.innerHTML = profile.photo
@@ -2192,8 +2193,7 @@ function openBladerProfile(name) {
   // season stats rows
   modal.querySelector('#ps-total').textContent     = profile.total;
   modal.querySelector('#ps-ppg').textContent       = profile.ppg;
-  modal.querySelector('#ps-record').textContent    = profile.wins + 'W – ' + profile.losses + 'L';
-  modal.querySelector('#ps-games').textContent     = profile.gamesPlayed;
+  modal.querySelector('#ps-games').textContent     = profile.wins + profile.losses;
   modal.querySelector('#ps-attend').textContent    = profile.eventsJoined + ' / ' + profile.gamesTotal;
   modal.querySelector('#ps-spin').textContent      = profile.spinFinishes;
   modal.querySelector('#ps-burst').textContent     = profile.burstFinishes;
@@ -2546,8 +2546,7 @@ applyHeroBgToPage();
       <div class="profile-section-title">Season Statistics</div>
       <div class="profile-stat-row"><span class="label">Total Points</span><span class="value" id="ps-total">0</span></div>
       <div class="profile-stat-row"><span class="label">Points Per Game (PPG)</span><span class="value" id="ps-ppg">0</span></div>
-      <div class="profile-stat-row"><span class="label">Match Record</span><span class="value" id="ps-record">—</span></div>
-      <div class="profile-stat-row"><span class="label">Challonge Matches (1v1)</span><span class="value" id="ps-games">0</span></div>
+      <div class="profile-stat-row"><span class="label">Total Matches</span><span class="value" id="ps-games">0</span></div>
       <div class="profile-stat-row"><span class="label">Events Joined</span><span class="value" id="ps-attend">—</span></div>
       <div class="profile-stat-row"><span class="label">Spin Finishes</span><span class="value" id="ps-spin">0</span></div>
       <div class="profile-stat-row"><span class="label">Burst Finishes</span><span class="value" id="ps-burst">0</span></div>
