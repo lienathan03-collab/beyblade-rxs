@@ -160,6 +160,121 @@
     width: 100%; height: 100%; object-fit: cover; object-position: center top; opacity: 0.5;
   }
 
+
+  /* ── BLADER PROFILE MODAL ── */
+  .profile-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9100; opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .profile-overlay.open { opacity: 1; pointer-events: all; }
+  .profile-modal {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px; width: 100%; max-width: 420px;
+    max-height: 90vh; overflow-y: auto;
+    position: relative; transform: translateY(16px); transition: transform .25s;
+  }
+  .profile-overlay.open .profile-modal { transform: translateY(0); }
+  .profile-hero {
+    border-radius: 20px 20px 0 0; overflow: hidden;
+    position: relative; min-height: 180px;
+    background: var(--surface2);
+  }
+  .profile-hero-bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center top;
+    filter: blur(6px) brightness(0.4); transform: scale(1.1);
+  }
+  .profile-hero-content {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 28px 20px 16px;
+  }
+  .profile-avatar {
+    width: 88px; height: 88px; border-radius: 50%;
+    border: 3px solid var(--gold); overflow: hidden;
+    background: var(--surface2); margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 36px;
+  }
+  .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-pname {
+    font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase; color: #fff;
+    text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  }
+  .profile-tags { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; justify-content: center; }
+  .profile-rank-pill {
+    font-family: 'Share Tech Mono', monospace; font-size: 13px;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px; padding: 3px 12px; color: #fff;
+  }
+  .profile-body { padding: 20px; }
+  .profile-stat-cards {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px;
+  }
+  .profile-stat-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 8px; text-align: center;
+  }
+  .profile-stat-card .psv {
+    font-family: 'Share Tech Mono', monospace; font-size: 20px; font-weight: 700;
+    color: var(--accent); display: block;
+  }
+  .profile-stat-card .psl {
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); margin-top: 3px; display: block;
+  }
+  .profile-stat-card.highlight { border-color: var(--gold); }
+  .profile-stat-card.highlight .psv { color: var(--gold2); }
+  .profile-section-title {
+    font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px;
+  }
+  .profile-stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--border);
+  }
+  .profile-stat-row:last-child { border-bottom: none; }
+  .profile-stat-row .label { font-size: 13px; color: var(--muted); }
+  .profile-stat-row .value {
+    font-family: 'Share Tech Mono', monospace; font-size: 14px;
+    color: var(--accent); font-weight: 700;
+  }
+  .profile-close {
+    position: absolute; top: 14px; right: 16px; z-index: 10;
+    background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50%; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; cursor: pointer; color: #fff;
+  }
+  .profile-close:hover { background: rgba(255,255,255,0.15); }
+  .profile-edit-section {
+    background: #1a1200; border: 1px solid var(--gold);
+    border-radius: 10px; padding: 14px; margin-top: 16px; display: none;
+  }
+  .admin-active .profile-edit-section { display: block; }
+  .profile-edit-title {
+    font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .profile-edit-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .profile-edit-field { display: flex; flex-direction: column; gap: 4px; }
+  .profile-edit-field label {
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+  }
+  .profile-edit-field input {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 6px; padding: 7px 10px; color: var(--text);
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    outline: none; transition: border-color .15s; width: 100%;
+  }
+  .profile-edit-field input:focus { border-color: var(--gold); }
+  .profile-edit-field.full { grid-column: 1 / -1; }
+
   /* SEASON KING badge */
   .season-king-badge {
     display: inline-flex; align-items: center; gap: 5px;
@@ -504,7 +619,7 @@
       <div class="podium-place">🥈</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(2)">📷 Edit</button>
       <div class="podium-stats">
-        <div class="podium-name" id="p2-name">—</div>
+        <div class="podium-name" id="p2-name" style="cursor:pointer" onclick="openBladerProfileByIndex(1)">—</div>
         <div class="podium-pts" id="p2-pts">0</div>
         <div class="podium-label">2nd Place</div>
       </div>
@@ -517,7 +632,7 @@
       <div class="podium-place">👑</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(1)">📷 Edit</button>
       <div class="podium-stats">
-        <div class="podium-name" id="p1-name">—</div>
+        <div class="podium-name" id="p1-name" style="cursor:pointer" onclick="openBladerProfileByIndex(0)">—</div>
         <div class="podium-pts" id="p1-pts">0</div>
         <div class="season-king-badge" style="margin-top:4px">👑 Season King</div>
       </div>
@@ -530,7 +645,7 @@
       <div class="podium-place">🥉</div>
       <button class="podium-edit-btn" onclick="adminEditPhoto(3)">📷 Edit</button>
       <div class="podium-stats">
-        <div class="podium-name" id="p3-name">—</div>
+        <div class="podium-name" id="p3-name" style="cursor:pointer" onclick="openBladerProfileByIndex(2)">—</div>
         <div class="podium-pts" id="p3-pts">0</div>
         <div class="podium-label">3rd Place</div>
       </div>
@@ -886,7 +1001,7 @@ let cloudSaveTimeout = null;
 // ── localStorage fallback ──
 const LS_KEY = 'beyblade_rxs_data';
 function localSave() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify({ photos: podiumPhotos, heroBgUrl: heroBgUrl||'', players, eventLabels, importedIds: importedTournamentIds, teamConfig })); } catch(e) {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify({ photos: podiumPhotos, heroBgUrl: heroBgUrl||'', players, eventLabels, importedIds: importedTournamentIds, teamConfig, bladerStats })); } catch(e) {}
 }
 function localLoad() {
   try {
@@ -899,6 +1014,7 @@ function localLoad() {
     if (d.eventLabels)               { eventLabels = d.eventLabels; }
     if (d.importedIds)               { importedTournamentIds = d.importedIds; }
     if (d.teamConfig)                  { teamConfig = Object.assign(teamConfig, d.teamConfig); }
+    if (d.bladerStats)                 { bladerStats = Object.assign(bladerStats, d.bladerStats); }
     renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
     return true;
   } catch(e) { return false; }
@@ -923,6 +1039,7 @@ async function cloudLoad() {
     if (data.eventLabels)             { eventLabels = data.eventLabels; }
     if (data.importedIds)             { importedTournamentIds = data.importedIds; }
     if (data.teamConfig)               { teamConfig = Object.assign(teamConfig, data.teamConfig); }
+    if (data.bladerStats)              { bladerStats = Object.assign(bladerStats, data.bladerStats); }
     renderLeaderboard(); renderWeekly(); renderTeamTotals(); updateHeroStats(); renderAchievements();
     localSave();
   } catch(e) { console.error('[JSONBin] Load error:', e); }
@@ -942,7 +1059,8 @@ async function cloudSave() {
           players: players,
           eventLabels: eventLabels,
           importedIds: importedTournamentIds,
-          teamConfig: teamConfig
+          teamConfig: teamConfig,
+          bladerStats: bladerStats
         })
       });
       if (!res.ok) {
@@ -1498,7 +1616,7 @@ function renderLeaderboard() {
   body.innerHTML=filtered.map((p,i)=>{
     const isTop3=i<3&&currentFilter==='all'&&currentSearch==='';
     const origIdx=players.indexOf(p);
-    return `<tr><td>${getRankDisplay(p.rank,origIdx)}</td><td><span class="blader-name${isTop3?' top3':''}">${p.name}</span>${getTagHtml(p.name)}</td><td>${getTeam(p.name)||'<span style="color:var(--muted2)">—</span>'}</td><td><span class="score${origIdx===0?' champ':''}" style="display:block;text-align:right">${p.total}</span></td><td style="text-align:right">${getRankBadge(p.rank)}</td></tr>`;
+    return `<tr><td>${getRankDisplay(p.rank,origIdx)}</td><td><span class="blader-name${isTop3?' top3':''}" style="cursor:pointer" onclick="openBladerProfile('${p.name.replace(/'/g,'\\'')}')">${p.name}</span>${getTagHtml(p.name)}</td><td>${getTeam(p.name)||'<span style="color:var(--muted2)">—</span>'}</td><td><span class="score${origIdx===0?' champ':''}" style="display:block;text-align:right">${p.total}</span></td><td style="text-align:right">${getRankBadge(p.rank)}</td></tr>`;
   }).join('');
   document.getElementById('page-info').textContent=`Showing ${filtered.length} of ${players.length} bladers`;
 }
@@ -1565,12 +1683,17 @@ function renderTeamTotals() {
 function updateHeroStats() {
   document.getElementById('stat-bladers').textContent=players.length;
   document.getElementById('stat-events').textContent=eventLabels.length;
-  document.getElementById('stat-ranks').textContent =
-  Math.max(...players.map(p => p.rank || 0));
+  document.getElementById('stat-ranks').textContent = players.length ? Math.max(...players.map(p => p.rank || 0)) : 0;
   document.getElementById('topScore').textContent=players[0]?.total||0;
-  if(players[0]) document.getElementById('p1-pts').textContent=players[0].total;
-  if(players[1]) document.getElementById('p2-pts').textContent=players[1].total;
-  if(players[2]) document.getElementById('p3-pts').textContent=players[2].total;
+  // Podium names + pts — connected to sorted players array
+  const names=['p1-name','p2-name','p3-name'];
+  const pts=['p1-pts','p2-pts','p3-pts'];
+  [0,1,2].forEach(i=>{
+    const el=document.getElementById(names[i]);
+    const ep=document.getElementById(pts[i]);
+    if(el) el.textContent = players[i]?.name || '—';
+    if(ep) ep.textContent = players[i]?.total || 0;
+  });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1674,6 +1797,108 @@ function renderAchievements() {
     </div>`).join('');
 }
 
+
+// ═══════════════════════════════════════════════════════
+//  BLADER PROFILES & STATS
+// ═══════════════════════════════════════════════════════
+// bladerStats keyed by player name — manually entered fields
+// auto-computed fields come live from players[] & challonge data
+let bladerStats = {};  // { "VG.xUYAPOS": { photo:'', mvpScore:0, spinFinishes:0, burstFinishes:0, extremeFinishes:0 }, ... }
+
+function getBladerStats(name) {
+  return bladerStats[name] || { photo:'', mvpScore:0, spinFinishes:0, burstFinishes:0, extremeFinishes:0 };
+}
+
+function computeBladerProfile(name) {
+  const p = players.find(pl => pl.name === name);
+  if (!p) return null;
+  const st = getBladerStats(name);
+  const gamesPlayed   = p.scores.filter(s => s > 0).length;
+  const gamesTotal    = eventLabels.length;
+  const attendRate    = gamesTotal > 0 ? ((gamesPlayed / gamesTotal) * 100).toFixed(1) + '%' : '—';
+  const ppg           = gamesPlayed > 0 ? (p.total / gamesPlayed).toFixed(2) : '0.00';
+  const rank          = players.indexOf(p) + 1;
+  const winRate       = gamesPlayed > 0 ? (((st.spinFinishes||0)+(st.burstFinishes||0)+(st.extremeFinishes||0)) / Math.max(gamesPlayed,1) * 100).toFixed(1) + '%' : '—';
+  return { name, rank, total: p.total, gamesPlayed, gamesTotal, attendRate, ppg, winRate,
+           photo: st.photo||'', mvpScore: st.mvpScore||0,
+           spinFinishes: st.spinFinishes||0, burstFinishes: st.burstFinishes||0,
+           extremeFinishes: st.extremeFinishes||0 };
+}
+
+function openBladerProfile(name) {
+  const profile = computeBladerProfile(name);
+  if (!profile) return;
+  const team = getTeam(name);
+  const cfg  = teamConfig[team] || {};
+  const teamColor = cfg.color || '#888';
+  const tagHtml = team ? `<span class="profile-rank-pill" style="color:${teamColor};border-color:${teamColor}66">${cfg.name||team}</span>` : '';
+  const rankEmoji = profile.rank===1?'👑':profile.rank===2?'🥈':profile.rank===3?'🥉':'';
+
+  const modal = document.getElementById('blader-profile-modal');
+  modal.querySelector('.profile-hero-bg').style.backgroundImage = profile.photo ? `url('${profile.photo}')` : 'none';
+  modal.querySelector('.profile-hero-bg').style.background = profile.photo ? '' : 'linear-gradient(135deg,#1a1200,#0f0f0f)';
+
+  const av = modal.querySelector('.profile-avatar');
+  av.innerHTML = profile.photo
+    ? `<img src="${profile.photo}" alt="${name}" onerror="this.parentElement.innerHTML='🧍'" />`
+    : '🧍';
+
+  modal.querySelector('.profile-pname').textContent = name;
+  modal.querySelector('.profile-tags').innerHTML =
+    tagHtml +
+    `<span class="profile-rank-pill">${rankEmoji} Rank #${profile.rank}</span>` +
+    `<span class="profile-rank-pill">${profile.total} pts</span>`;
+
+  // stat cards row
+  modal.querySelector('#pc-winrate').textContent   = profile.winRate;
+  modal.querySelector('#pc-rank').textContent      = '#' + profile.rank;
+  modal.querySelector('#pc-ppg').textContent       = profile.ppg;
+
+  // season stats rows
+  modal.querySelector('#ps-mvp').textContent       = parseFloat(profile.mvpScore||0).toFixed(2);
+  modal.querySelector('#ps-total').textContent     = profile.total;
+  modal.querySelector('#ps-ppg').textContent       = profile.ppg;
+  modal.querySelector('#ps-games').textContent     = profile.gamesPlayed;
+  modal.querySelector('#ps-attend').textContent    = profile.attendRate;
+  modal.querySelector('#ps-spin').textContent      = profile.spinFinishes;
+  modal.querySelector('#ps-burst').textContent     = profile.burstFinishes;
+  modal.querySelector('#ps-extreme').textContent   = profile.extremeFinishes;
+
+  // admin edit fields
+  const st = getBladerStats(name);
+  modal.querySelector('#pe-name').value        = name;
+  modal.querySelector('#pe-photo').value       = st.photo||'';
+  modal.querySelector('#pe-mvp').value         = st.mvpScore||'';
+  modal.querySelector('#pe-spin').value        = st.spinFinishes||'';
+  modal.querySelector('#pe-burst').value       = st.burstFinishes||'';
+  modal.querySelector('#pe-extreme').value     = st.extremeFinishes||'';
+
+  document.getElementById('blader-profile-modal').classList.add('open');
+}
+
+function openBladerProfileByIndex(idx) {
+  if (players[idx]) openBladerProfile(players[idx].name);
+}
+
+function closeBladerProfile() {
+  document.getElementById('blader-profile-modal').classList.remove('open');
+}
+
+function saveBladerProfile() {
+  const name = document.getElementById('pe-name').value;
+  if (!name) return;
+  bladerStats[name] = {
+    photo:          document.getElementById('pe-photo').value.trim(),
+    mvpScore:       parseFloat(document.getElementById('pe-mvp').value)||0,
+    spinFinishes:   parseInt(document.getElementById('pe-spin').value)||0,
+    burstFinishes:  parseInt(document.getElementById('pe-burst').value)||0,
+    extremeFinishes:parseInt(document.getElementById('pe-extreme').value)||0,
+  };
+  cloudSave();
+  openBladerProfile(name); // refresh display
+  showToast('Blader stats saved!', 'success');
+}
+
 // ═══════════════════════════════════════════════════════
 //  TEAM EDIT MODAL
 // ═══════════════════════════════════════════════════════
@@ -1774,6 +1999,85 @@ applyHeroBgToPage();
     <div class="modal-actions">
       <button class="btn primary" style="flex:1" onclick="applyTeamEdit()">✅ Apply</button>
       <button class="btn" onclick="closeTeamEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ BLADER PROFILE MODAL ══════════════ -->
+<div class="profile-overlay" id="blader-profile-modal" onclick="if(event.target===this)closeBladerProfile()">
+  <div class="profile-modal">
+    <button class="profile-close" onclick="closeBladerProfile()">✕</button>
+
+    <!-- Hero banner -->
+    <div class="profile-hero">
+      <div class="profile-hero-bg"></div>
+      <div class="profile-hero-content">
+        <div class="profile-avatar"></div>
+        <div class="profile-pname">—</div>
+        <div class="profile-tags"></div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="profile-body">
+
+      <!-- Top 3 stat cards -->
+      <div class="profile-stat-cards">
+        <div class="profile-stat-card highlight">
+          <span class="psv" id="pc-winrate">—</span>
+          <span class="psl">Win Rate</span>
+        </div>
+        <div class="profile-stat-card">
+          <span class="psv" id="pc-rank">—</span>
+          <span class="psl">Rank</span>
+        </div>
+        <div class="profile-stat-card">
+          <span class="psv" id="pc-ppg">—</span>
+          <span class="psl">PPG</span>
+        </div>
+      </div>
+
+      <!-- Season Statistics -->
+      <div class="profile-section-title">Season Statistics</div>
+      <div class="profile-stat-row"><span class="label">MVP Score</span><span class="value" id="ps-mvp">0</span></div>
+      <div class="profile-stat-row"><span class="label">Total Points</span><span class="value" id="ps-total">0</span></div>
+      <div class="profile-stat-row"><span class="label">Points Per Game (PPG)</span><span class="value" id="ps-ppg">0</span></div>
+      <div class="profile-stat-row"><span class="label">Games Played</span><span class="value" id="ps-games">0</span></div>
+      <div class="profile-stat-row"><span class="label">Games Attended</span><span class="value" id="ps-attend">—</span></div>
+      <div class="profile-stat-row"><span class="label">Spin Finishes</span><span class="value" id="ps-spin">0</span></div>
+      <div class="profile-stat-row"><span class="label">Burst Finishes</span><span class="value" id="ps-burst">0</span></div>
+      <div class="profile-stat-row"><span class="label">Extreme Finishes</span><span class="value" id="ps-extreme">0</span></div>
+
+      <!-- Admin Edit Section -->
+      <div class="profile-edit-section">
+        <div class="profile-edit-title">⚙️ Admin — Edit Stats</div>
+        <input type="hidden" id="pe-name" />
+        <div class="profile-edit-grid">
+          <div class="profile-edit-field full">
+            <label>Photo URL</label>
+            <input type="text" id="pe-photo" placeholder="https://i.imgur.com/..." />
+          </div>
+          <div class="profile-edit-field">
+            <label>MVP Score</label>
+            <input type="number" id="pe-mvp" placeholder="0.00" step="0.01" />
+          </div>
+          <div class="profile-edit-field">
+            <label>Spin Finishes</label>
+            <input type="number" id="pe-spin" placeholder="0" />
+          </div>
+          <div class="profile-edit-field">
+            <label>Burst Finishes</label>
+            <input type="number" id="pe-burst" placeholder="0" />
+          </div>
+          <div class="profile-edit-field">
+            <label>Extreme Finishes</label>
+            <input type="number" id="pe-extreme" placeholder="0" />
+          </div>
+        </div>
+        <button class="btn primary" style="width:100%;margin-top:12px" onclick="saveBladerProfile()">💾 Save Stats</button>
+      </div>
+
     </div>
   </div>
 </div>
