@@ -1544,18 +1544,27 @@ async function confirmImport(labelEnc, resultsEnc, tournamentId) {
         const cp = currentParticipants.find(p => (p.display_name||p.name||'').trim() === r.challongeName);
         if (cp) pidMap[cp.id] = r.matchedPlayer || r.challongeName;
       });
-      // Count wins per player name
+      // Count wins and matches played per player name
       const winCounts = {};
+      const matchCounts = {};
       (matchData || []).forEach(m => {
         const match = m.match || m;
         if (match.state !== 'complete' || !match.winner_id) return;
         const winnerName = pidMap[match.winner_id];
+        const p1Name = pidMap[match.player1_id];
+        const p2Name = pidMap[match.player2_id];
         if (winnerName) winCounts[winnerName] = (winCounts[winnerName] || 0) + 1;
+        if (p1Name) matchCounts[p1Name] = (matchCounts[p1Name] || 0) + 1;
+        if (p2Name) matchCounts[p2Name] = (matchCounts[p2Name] || 0) + 1;
       });
-      // Accumulate wins into bladerStats
+      // Accumulate wins and matchesPlayed into bladerStats
       Object.entries(winCounts).forEach(([name, w]) => {
         const st = ensureBladerStats(name);
         st.wins = (st.wins || 0) + w;
+      });
+      Object.entries(matchCounts).forEach(([name, m]) => {
+        const st = ensureBladerStats(name);
+        st.matchesPlayed = (st.matchesPlayed || 0) + m;
       });
       console.log('[Import] Win counts tracked:', winCounts);
     } catch(e) { console.warn('[Import] Could not fetch matches for win tracking:', e); }
@@ -1852,17 +1861,18 @@ function computeBladerProfile(name) {
   const p = players.find(pl => pl.name === name);
   if (!p) return null;
   const st = getBladerStats(name);
-  const gamesPlayed   = p.scores.filter(s => s > 0).length;
+  const eventsJoined  = p.scores.filter(s => s > 0).length;
   const gamesTotal    = eventLabels.length;
-  const attendRate    = gamesTotal > 0 ? ((gamesPlayed / gamesTotal) * 100).toFixed(1) + '%' : '—';
-  const ppg           = gamesPlayed > 0 ? (p.total / gamesPlayed).toFixed(2) : '0.00';
+  const attendRate    = gamesTotal > 0 ? ((eventsJoined / gamesTotal) * 100).toFixed(1) + '%' : '—';
+  const ppg           = eventsJoined > 0 ? (p.total / eventsJoined).toFixed(2) : '0.00';
   const rank          = players.indexOf(p) + 1;
-  // Win rate = Challonge 1v1 wins / games played
-  const wins          = st.wins || 0;
-  const winRate       = gamesPlayed > 0 ? ((wins / gamesPlayed) * 100).toFixed(1) + '%' : '0.0%';
+  // Win rate = Challonge 1v1 wins / total 1v1 matches played
+  const wins           = st.wins || 0;
+  const matchesPlayed  = st.matchesPlayed || 0;
+  const winRate        = matchesPlayed > 0 ? ((wins / matchesPlayed) * 100).toFixed(1) + '%' : '0.0%';
   // MVP Score = average points per attended event (auto-computed)
-  const mvpScore      = gamesPlayed > 0 ? (p.total / gamesPlayed).toFixed(2) : '0.00';
-  return { name, rank, total: p.total, gamesPlayed, gamesTotal, attendRate, ppg, winRate, wins,
+  const mvpScore      = eventsJoined > 0 ? (p.total / eventsJoined).toFixed(2) : '0.00';
+  return { name, rank, total: p.total, gamesPlayed: matchesPlayed, eventsJoined, gamesTotal, attendRate, ppg, winRate, wins,
            photo: st.photo||'', mvpScore,
            spinFinishes: st.spinFinishes||0, burstFinishes: st.burstFinishes||0,
            extremeFinishes: st.extremeFinishes||0 };
@@ -1902,8 +1912,7 @@ function openBladerProfile(name) {
   modal.querySelector('#ps-total').textContent     = profile.total;
   modal.querySelector('#ps-ppg').textContent       = profile.ppg;
   modal.querySelector('#ps-games').textContent     = profile.gamesPlayed;
-  modal.querySelector('#ps-attend').textContent    = profile.attendRate;
-  modal.querySelector('#ps-wins').textContent     = profile.wins;
+  modal.querySelector('#ps-attend').textContent    = profile.eventsJoined + ' / ' + profile.gamesTotal;
   modal.querySelector('#ps-spin').textContent      = profile.spinFinishes;
   modal.querySelector('#ps-burst').textContent     = profile.burstFinishes;
   modal.querySelector('#ps-extreme').textContent   = profile.extremeFinishes;
@@ -2097,9 +2106,8 @@ applyHeroBgToPage();
       <div class="profile-stat-row"><span class="label">MVP Score</span><span class="value" id="ps-mvp">0</span></div>
       <div class="profile-stat-row"><span class="label">Total Points</span><span class="value" id="ps-total">0</span></div>
       <div class="profile-stat-row"><span class="label">Points Per Game (PPG)</span><span class="value" id="ps-ppg">0</span></div>
-      <div class="profile-stat-row"><span class="label">Games Played</span><span class="value" id="ps-games">0</span></div>
-      <div class="profile-stat-row"><span class="label">Games Attended</span><span class="value" id="ps-attend">—</span></div>
-      <div class="profile-stat-row"><span class="label">Challonge Wins</span><span class="value" id="ps-wins" style="color:var(--green)">0</span></div>
+      <div class="profile-stat-row"><span class="label">Challonge Matches (1v1)</span><span class="value" id="ps-games">0</span></div>
+      <div class="profile-stat-row"><span class="label">Events Joined</span><span class="value" id="ps-attend">—</span></div>
       <div class="profile-stat-row"><span class="label">Spin Finishes</span><span class="value" id="ps-spin">0</span></div>
       <div class="profile-stat-row"><span class="label">Burst Finishes</span><span class="value" id="ps-burst">0</span></div>
       <div class="profile-stat-row"><span class="label">Extreme Finishes</span><span class="value" id="ps-extreme">0</span></div>
