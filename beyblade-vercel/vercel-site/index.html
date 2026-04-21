@@ -181,9 +181,12 @@
     background: var(--surface2);
   }
   .profile-hero-bg {
-    position: absolute; inset: 0;
-    background-size: cover; background-position: center top;
+    position: absolute; inset: 0; overflow: hidden;
+  }
+  .profile-hero-bg img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center top;
     filter: blur(6px) brightness(0.4); transform: scale(1.1);
+    display: block;
   }
   .profile-hero-content {
     position: relative; z-index: 2;
@@ -2168,8 +2171,7 @@ function openBladerProfile(name) {
 
   const modal = document.getElementById('blader-profile-modal');
   const DEFAULT_PROFILE_BG = 'https://i.imgur.com/Kz7lPF2.jpeg';
-  modal.querySelector('.profile-hero-bg').style.backgroundImage = `url('${DEFAULT_PROFILE_BG}')`;
-  modal.querySelector('.profile-hero-bg').style.background = '';
+  modal.querySelector('.profile-hero-bg').innerHTML = `<img src="${DEFAULT_PROFILE_BG}" crossorigin="anonymous" />`;
 
   const av = modal.querySelector('.profile-avatar');
   av.innerHTML = profile.photo
